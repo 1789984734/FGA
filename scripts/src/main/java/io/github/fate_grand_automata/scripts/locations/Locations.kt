@@ -99,7 +99,20 @@ class Locations @Inject constructor(
     val menuStorySkipClick = Location(1080, 80).xFromCenter()
 
     val resultFriendRequestRegion = Region(600, 150, 100, 94).xFromCenter()
-    val resultFriendRequestRejectClick = Location(-680, 1200).xFromCenter()
+
+    /**
+     * Candidate clicks that dismiss the post-battle friend-request dialog.
+     *
+     * Either Accept (申请) or Reject (不申请) is fine. The Follow (关注) option
+     * pushes the buttons lower, so multiple Y positions are included. Prefer the
+     * lower positions first because the legacy Y=1200 often lands above the buttons.
+     */
+    val resultFriendRequestDismissClicks: List<Location> = listOf(1300, 1340, 1240, 1200).flatMap { y ->
+        listOf(
+            Location(-680, y).xFromCenter(), // Reject / 不申请
+            Location(640, y).xFromCenter(),  // Accept / 申请
+        )
+    }
     val resultMatRewardsRegion = Region(800, 1220, 280, 130).xFromCenter()
     val resultClick = Location(320, 1350).xFromCenter()
     val resultQuestRewardRegion = Region(350, 140, 370, 250).xFromCenter()

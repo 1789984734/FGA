@@ -93,6 +93,9 @@ class AutoBattle @Inject constructor(
 
     private var isQuestClose = false
 
+    // Rotate through accept/reject candidates when Follow layout shifts button Y.
+    private var friendRequestDismissIndex = 0
+
     override fun script(): Nothing {
         try {
             loop()
@@ -400,8 +403,12 @@ class AutoBattle @Inject constructor(
         images[Images.SupportExtra] in locations.resultFriendRequestRegion
 
     private fun skipFriendRequestScreen() {
-        // Friend request dialogue. Appears when non-friend support was selected this battle. Ofc it's defaulted not sending request.
-        locations.resultFriendRequestRejectClick.click()
+        // Friend request dialog after using a non-friend support.
+        // Accept or reject both dismiss it; Follow layout can move the buttons down,
+        // so try candidate click points one-by-one across loop iterations.
+        val clicks = locations.resultFriendRequestDismissClicks
+        clicks[friendRequestDismissIndex % clicks.size].click()
+        friendRequestDismissIndex++
     }
 
     private fun isInInterludeEndScreen() =
