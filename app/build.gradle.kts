@@ -1,37 +1,23 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 37
     ndkVersion = "21.3.6528147"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    kotlin {
-        compilerOptions {
-            optIn.add("androidx.compose.material.ExperimentalMaterialApi")
-            optIn.add("androidx.compose.material.ExperimentalMaterialApi")
-            optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
-            optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
-            optIn.add("androidx.compose.animation.ExperimentalAnimationApi")
-            optIn.add("androidx.compose.ui.ExperimentalComposeUiApi")
-            optIn.add("androidx.compose.foundation.layout.ExperimentalLayoutApi")
-            optIn.add("androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi")
-        }
     }
 
     androidResources {
@@ -88,6 +74,18 @@ android {
         abortOnError = false
     }
     namespace = "io.github.fate_grand_automata"
+}
+
+kotlin {
+    compilerOptions {
+        optIn.add("androidx.compose.material.ExperimentalMaterialApi")
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
+        optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
+        optIn.add("androidx.compose.animation.ExperimentalAnimationApi")
+        optIn.add("androidx.compose.ui.ExperimentalComposeUiApi")
+        optIn.add("androidx.compose.foundation.layout.ExperimentalLayoutApi")
+        optIn.add("androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi")
+    }
 }
 
 dependencies {

@@ -35,7 +35,7 @@ class MediaProjectionRecording(
         "ScreenRecord",
         imageSize.width, imageSize.height, screenDensity,
         0, mediaRecorder.surface, null, null
-    )
+    ) ?: error("Failed to create VirtualDisplay for screen recording")
 
     init {
         mediaRecorder.start()

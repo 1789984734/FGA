@@ -55,6 +55,7 @@ class ScreenshotServiceHolder @Inject constructor(
 
                 val mediaProjection =
                     mediaProjectionManager.getMediaProjection(Activity.RESULT_OK, token)
+                        ?: error("Failed to create MediaProjection")
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     // not allowed to reuse tokens on Android 14
