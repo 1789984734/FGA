@@ -55,7 +55,7 @@ class FakedComposeView(
     private val viewModelStore = ViewModelStore()
     val viewModelStoreOwner = object : ViewModelStoreOwner {
         override val viewModelStore: ViewModelStore
-            get() = viewModelStore
+            get() = this@FakedComposeView.viewModelStore
     }
     private val lifecycleOwner = FakeLifecycleOwner()
 
