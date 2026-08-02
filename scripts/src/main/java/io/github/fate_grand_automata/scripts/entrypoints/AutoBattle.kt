@@ -342,13 +342,9 @@ class AutoBattle @Inject constructor(
         locations.resultMatRewardsRegion.click()
     }
 
-    private fun isInOrdealCallConfirmPodUseScreen(): Boolean {
-        return findImage(locations.ordealCallConfirmPodUseRegion, Images.StartQuest)
-    }
+    private fun isInOrdealCallConfirmPodUseScreen(): Boolean = findImage(locations.ordealCallConfirmPodUseRegion, Images.StartQuest)
 
-    private fun isInOrdealCallOutOfPodsScreen(): Boolean {
-        return findImage(locations.ordealCallOutOfPodsRegion, Images.Close)
-    }
+    private fun isInOrdealCallOutOfPodsScreen(): Boolean = findImage(locations.ordealCallOutOfPodsRegion, Images.Close)
 
     private fun ordealCallOutOfPods() {
         locations.ordealCallOutOfPodsClick.click()
@@ -498,12 +494,24 @@ class AutoBattle @Inject constructor(
     fun startQuest() {
         partySelection.selectParty()
 
+        closePartyRestrictionDialogIfPresent()
+
         locations.menuStartQuestClick.click()
 
         2.seconds.wait()
 
         useBoostItem()
         storySkipPossible = true
+    }
+
+    private fun closePartyRestrictionDialogIfPresent() {
+        val closeButton = locations.partyRestrictionDialogCloseRegion
+            .find(images[Images.Close])
+
+        if (closeButton != null) {
+            closeButton.region.click()
+            0.5.seconds.wait()
+        }
     }
 
     /**

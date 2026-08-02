@@ -52,6 +52,9 @@ class Locations @Inject constructor(
             .xFromRight()
             .yFromBottom()
 
+    val partyRestrictionDialogCloseRegion =
+        Region(-320, 1080, 640, 260).xFromCenter()
+
     val menuStorySkipYesClick = Location(320, 1100).xFromCenter()
 
     val retryRegion = Region(20, 1000, 700, 300).xFromCenter()
