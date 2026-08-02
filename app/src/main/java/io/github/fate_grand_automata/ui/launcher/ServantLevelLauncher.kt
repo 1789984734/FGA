@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +37,8 @@ fun servantLevelLauncher(
     var shouldPerformAscension by servantEnhancementPrefsCore.shouldPerformAscension.remember()
 
     var shouldRedirectGrail by servantEnhancementPrefsCore.shouldRedirectGrail.remember()
+
+    var shouldPerformGrail by servantEnhancementPrefsCore.shouldPerformGrail.remember()
 
     LazyColumn(
         modifier = modifier
@@ -132,10 +133,23 @@ fun servantLevelLauncher(
                         status = shouldRedirectGrail,
                         onStatusChange = {
                             shouldRedirectGrail = it
+                            if (!it) {
+                                shouldPerformGrail = false
+                            }
                         }
                     )
                 VerticalDivider()
-                Spacer(modifier = Modifier.weight(1f))
+                RowTextCheckBox(
+                    modifier = Modifier.weight(1f),
+                    text = stringResource(R.string.servant_enhancement_perform_grail),
+                    status = shouldPerformGrail,
+                    onStatusChange = {
+                        shouldPerformGrail = it
+                        if (it) {
+                            shouldRedirectGrail = true
+                        }
+                    }
+                )
             }
         }
     }

@@ -494,7 +494,7 @@ class AutoBattle @Inject constructor(
     fun startQuest() {
         partySelection.selectParty()
 
-        closePartyRestrictionDialogIfPresent()
+        closePreQuestDialogsIfPresent()
 
         locations.menuStartQuestClick.click()
 
@@ -504,13 +504,14 @@ class AutoBattle @Inject constructor(
         storySkipPossible = true
     }
 
-    private fun closePartyRestrictionDialogIfPresent() {
-        val closeButton = locations.partyRestrictionDialogCloseRegion
-            .find(images[Images.Close])
+    private fun closePreQuestDialogsIfPresent() {
+        repeat(MAX_PRE_QUEST_DIALOGS) {
+            val closeButton = locations.partyRestrictionDialogCloseRegion
+                .find(images[Images.Close])
+                ?: return
 
-        if (closeButton != null) {
             closeButton.region.click()
-            0.5.seconds.wait()
+            0.8.seconds.wait()
         }
     }
 
@@ -551,5 +552,9 @@ class AutoBattle @Inject constructor(
         }
 
         refill.refill()
+    }
+
+    private companion object {
+        const val MAX_PRE_QUEST_DIALOGS = 10
     }
 }

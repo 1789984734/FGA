@@ -71,6 +71,11 @@ class AutoServantLevel @Inject constructor(
          * The script exited because it was redirected to the grail menu.
          */
         data object RedirectGrail : ExitReason()
+
+        /**
+         * The script exited because Palingenesis could not be performed safely.
+         */
+        data object UnableToPerformGrail : ExitReason()
     }
 
     class ServantUpgradeException(val reason: ExitReason) : Exception()
@@ -95,8 +100,8 @@ class AutoServantLevel @Inject constructor(
     private var isInAscension = false
 
     /**
-     * JP Update from 2025-07-30
-     * that supports the auto filling of the embers making enhancement faster.
+     * JP and CN updates that support automatically filling embers,
+     * making enhancement faster.
      *
      * This is used to check if the script is in the auto fill state.
      */
@@ -107,6 +112,10 @@ class AutoServantLevel @Inject constructor(
      * it will now refund the extra embers/qp used for the enhancement.
      */
     private var isRefundWindowClicked = false
+
+    private var isInGrail = false
+
+    private var grailConfirmationAccepted = false
 
     private fun loop(): Nothing {
         if (isServantEmpty()) {
@@ -122,10 +131,12 @@ class AutoServantLevel @Inject constructor(
             { isEmptyEmberOrQPDialogVisible() } to {
                 handlePromptDialog()
             },
+            { isGrailConfirmationDialogVisible() } to { confirmGrail() },
             { isFinalConfirmDialogVisible(prefs.gameServer) } to { confirmEnhancement() },
             { isAutoSelectVisible() } to { performAutoSelect() },
             { isAutoSelectOff() } to { throw ServantUpgradeException(ExitReason.MaxLevelAchieved) },
             { isInAscensionMenu() } to { handlePerformedAscension() },
+            { isInGrailMenu() } to { handleGrailMenu() },
         )
 
         while (true) {
@@ -190,7 +201,10 @@ class AutoServantLevel @Inject constructor(
                         break
                     }
                 }
-                throw ServantUpgradeException(ExitReason.RedirectGrail)
+                if (!prefs.servant.shouldPerformGrail) {
+                    throw ServantUpgradeException(ExitReason.RedirectGrail)
+                }
+                isInGrail = true
             }
 
             else -> {
@@ -242,10 +256,55 @@ class AutoServantLevel @Inject constructor(
         }
     }
 
+    private fun handleGrailMenu() {
+        if (grailConfirmationAccepted) {
+            handleCompletedGrail()
+            return
+        }
+
+        val confirmationPatterns = okButtonPatterns(prefs.gameServer)
+            .associateWith { locations.servant.grailConfirmationDialogRegion }
+
+        repeat(3) { attempt ->
+            locations.enhancementClick.click()
+
+            if (confirmationPatterns.exists(
+                    timeout = 3.seconds,
+                    similarity = GRAIL_CONFIRMATION_SIMILARITY
+                )
+            ) {
+                return
+            }
+
+            if (attempt < 2) {
+                0.5.seconds.wait()
+            }
+        }
+
+        throw ServantUpgradeException(ExitReason.UnableToPerformGrail)
+    }
+
+    private fun handleCompletedGrail() {
+        repeat(3) {
+            locations.servant.returnToServantMenuFromGrailLocation.click()
+            if (waitUntilServantMenuVisible()) {
+                grailConfirmationAccepted = false
+                isInGrail = false
+                return
+            }
+            locations.enhancementSkipRapidClick.click(5)
+        }
+
+        throw ServantUpgradeException(ExitReason.UnableToPerformGrail)
+    }
+
     /**
      * This function will check if the script is in the ascension menu.
      */
     private fun isInAscensionMenu() = images[Images.ServantAscensionBanner] in
+            locations.enhancementBannerRegion
+
+    private fun isInGrailMenu() = images[Images.ServantGrailBanner] in
             locations.enhancementBannerRegion
 
     /**
@@ -268,18 +327,24 @@ class AutoServantLevel @Inject constructor(
      */
     private fun performAutoSelect() {
         if (stateAutoFill) {
-            locations.enhancementClick.click()
-            0.5.seconds.wait()
-            val exist = mapOf(
+            val confirmationPatterns = mapOf(
                 images[Images.Ok] to locations.servant.finalConfirmRegion,
                 images[Images.Execute] to locations.tempServantEnhancementRegion
-            ).exists(
-                timeout = 3.seconds
             )
-            if (!exist) {
-                throw ServantUpgradeException(ExitReason.NoEmbersOrQPLeft)
+
+            repeat(3) { attempt ->
+                locations.enhancementClick.click()
+
+                if (confirmationPatterns.exists(timeout = 3.seconds)) {
+                    return
+                }
+
+                if (attempt < 2) {
+                    0.5.seconds.wait()
+                }
             }
-            return
+
+            throw ServantUpgradeException(ExitReason.NoEmbersOrQPLeft)
         }
         else {
             locations.servant.servantAutoSelectRegion.click()
@@ -289,12 +354,15 @@ class AutoServantLevel @Inject constructor(
     /**
      * This function will attempt to enable the auto fill feature if it is available.
      * It checks if the feature is already ON, and if not, it tries to click the toggle.
-     * This is only applicable for the JP server.
+     * This is applicable to servers using the new auto-fill UI.
      *
      * @see stateAutoFill
      */
     private fun tryEnableAutoFill() {
-        if (prefs.gameServer !is GameServer.Jp) return
+        when (prefs.gameServer) {
+            is GameServer.Jp, GameServer.Cn -> Unit
+            else -> return
+        }
 
         stateAutoFill = images[Images.StateON] in locations.servant.autoFillStateRegion
 
@@ -337,7 +405,12 @@ class AutoServantLevel @Inject constructor(
     private fun confirmEnhancement() {
         locations.servant.finalConfirmRegion.click()
         1.0.seconds.wait()
+    }
 
+    private fun confirmGrail() {
+        locations.servant.grailConfirmationDialogRegion.click()
+        grailConfirmationAccepted = true
+        1.0.seconds.wait()
     }
 
     /**
@@ -367,7 +440,7 @@ class AutoServantLevel @Inject constructor(
      */
     private fun isEmberSelectionDialogVisible(): Boolean {
         val pattern = when (prefs.gameServer) {
-            is GameServer.Jp -> images[Images.Execute]
+            is GameServer.Jp, GameServer.Cn -> images[Images.Execute]
             else -> images[Images.Ok]
         }
         return pattern in locations.servant.emberConfirmationDialogRegion
@@ -391,10 +464,14 @@ class AutoServantLevel @Inject constructor(
             locations.servant.emptyEmberOrQPDialogRegion.click()
             return
         }
-        // If the script is in the JP server, it will check if the refund window is clicked.
+        // If the server supports the refund window, check whether it was already clicked.
         // If it is, it will throw an exception to exit the script.
         // If it is not, it will click the refund window.
-        val isRefundAvailable = prefs.gameServer is GameServer.Jp && !isRefundWindowClicked
+        val supportsRefundWindow = when (prefs.gameServer) {
+            is GameServer.Jp, GameServer.Cn -> true
+            else -> false
+        }
+        val isRefundAvailable = supportsRefundWindow && !isRefundWindowClicked
         if (isRefundAvailable) {
             isRefundWindowClicked = true
             locations.servant.emptyEmberOrQPDialogRegion.click()
@@ -410,6 +487,14 @@ class AutoServantLevel @Inject constructor(
      */
     private fun isFinalConfirmDialogVisible(gameServer: GameServer) =
         okButtonPatterns(gameServer) in locations.servant.finalConfirmRegion
+
+    private fun isGrailConfirmationDialogVisible() = isInGrail &&
+        okButtonPatterns(prefs.gameServer).any {
+            locations.servant.grailConfirmationDialogRegion.exists(
+                it,
+                similarity = GRAIL_CONFIRMATION_SIMILARITY
+            )
+        }
 
     /**
      * This function will check if the servant is max level.
@@ -493,5 +578,9 @@ class AutoServantLevel @Inject constructor(
         // KR has 2 OK buttons
         is GameServer.Kr -> listOf(images[Images.Ok], images[Images.OkKR])
         else -> listOf(images[Images.Ok])
+    }
+
+    private companion object {
+        const val GRAIL_CONFIRMATION_SIMILARITY = 0.65
     }
 }

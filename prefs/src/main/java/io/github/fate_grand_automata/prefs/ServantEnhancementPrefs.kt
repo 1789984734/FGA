@@ -9,4 +9,5 @@ internal class ServantEnhancementPrefs(
     override var shouldRedirectAscension: Boolean by prefsCore.shouldRedirectAscension
     override var shouldPerformAscension: Boolean by prefsCore.shouldPerformAscension
     override var shouldRedirectGrail: Boolean by prefsCore.shouldRedirectGrail
+    override var shouldPerformGrail: Boolean by prefsCore.shouldPerformGrail
 }

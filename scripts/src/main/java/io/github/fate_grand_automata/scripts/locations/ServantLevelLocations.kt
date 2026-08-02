@@ -11,6 +11,7 @@ class ServantLevelLocations @Inject constructor(
 
     val emberConfirmationDialogRegion = when (gameServer) {
         is GameServer.Jp -> Region(321, 1209, 160, 100).xFromCenter()
+        GameServer.Cn -> Region(278, 1180, 240, 180).xFromCenter()
         else -> Region(338, 1229, 130, 70).xFromCenter()
     }
 
@@ -20,7 +21,7 @@ class ServantLevelLocations @Inject constructor(
     }
 
     val servantAutoSelectRegion = when (gameServer) {
-        is GameServer.Jp -> Region(764, 0, 260, 60).xFromCenter()
+        is GameServer.Jp, GameServer.Cn -> Region(764, 0, 260, 60).xFromCenter()
         else -> Region(1032, 0, 238, 53).xFromCenter()
     }.copy(y = if (isWide) 268 else 308)
      
@@ -34,6 +35,16 @@ class ServantLevelLocations @Inject constructor(
         Region(-113, 1086, 224, 76).xFromCenter()
 
     val finalConfirmRegion = Region(339, 1143, 124, 64).xFromCenter()
+
+    /**
+     * Palingenesis uses a larger confirmation dialog than normal enhancement.
+     * Keep this region on the right-hand "OK" button so slight text offsets do not
+     * prevent the confirmation from being detected.
+     */
+    val grailConfirmationDialogRegion = when (gameServer) {
+        GameServer.Cn -> Region(230, 1060, 340, 240).xFromCenter()
+        else -> finalConfirmRegion
+    }
 
     val servantMaxLevelRegion = when (isWide) {
         true -> Region(613, 1007, 58, 128).xFromCenter()
@@ -57,6 +68,8 @@ class ServantLevelLocations @Inject constructor(
     val autoSelectMinEmberLowQPLocation = Location(402, 1126).xFromCenter()
 
     val returnToServantMenuFromAscensionLocation = Location(816, 572).xFromCenter()
+
+    val returnToServantMenuFromGrailLocation = Location(180, 80)
 
     val ascensionReturnToLevelRegion = when(isWide){
         true -> Region(566, 487, 47, 86).xFromCenter()

@@ -4,4 +4,5 @@ interface IServantEnhancementPreferences {
     var shouldRedirectAscension: Boolean
     val shouldPerformAscension: Boolean
     var shouldRedirectGrail: Boolean
+    val shouldPerformGrail: Boolean
 }

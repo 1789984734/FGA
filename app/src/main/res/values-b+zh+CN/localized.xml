@@ -474,9 +474,11 @@
     <string name="servant_enhancement_perform_ascension_question">"执行灵基再临"</string>
     <string name="servant_enhancement_perform_ascension_warning">"不支持对重复从者的灵基再临。"</string>
     <string name="servant_enhancement_redirect_grail">"达到等级上限后，跳转至圣杯转临"</string>
+    <string name="servant_enhancement_perform_grail">"执行圣杯转临"</string>
     <string name="servant_enhancement_redirect_ascension_success">"跳转至灵基再临"</string>
     <string name="servant_enhancement_redirect_grail_success">"跳转至圣杯转临"</string>
     <string name="servant_enhancement_perform_ascension_failed">"无法执行灵基再临"</string>
+    <string name="servant_enhancement_perform_grail_failed">"无法继续执行圣杯转临"</string>
     <string name="servant_enhancement_max_level">"达到最大等级"</string>
     <string name="servant_enhancement_none_selected">"未选择从者。请选择一名从者后再继续。"</string>
     <string name="servant_enhancement_aborted">"从者强化终止"</string>
