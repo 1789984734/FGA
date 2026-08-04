@@ -65,6 +65,14 @@ fun LazyListScope.battleGroup(
     }
 
     item {
+        prefs.stopOnBondMax.SwitchPreference(
+            title = stringResource(R.string.p_stop_on_bond_max),
+            summary = stringResource(R.string.p_stop_on_bond_max_summary),
+            icon = icon(R.drawable.ic_card)
+        )
+    }
+
+    item {
         prefs.screenshotDrops.SwitchPreference(
             title = stringResource(R.string.p_screenshot_drops),
             summary = stringResource(R.string.p_screenshot_drops_summary),

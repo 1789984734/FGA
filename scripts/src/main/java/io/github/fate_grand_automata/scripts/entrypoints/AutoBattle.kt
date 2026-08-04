@@ -74,6 +74,7 @@ class AutoBattle @Inject constructor(
         class CardPriorityParseError(val msg: String) : ExitReason()
         data object Paused : ExitReason()
         data object StopAfterThisRun : ExitReason()
+        data object BondMax : ExitReason()
     }
 
     internal class BattleExitException(val reason: ExitReason) : Exception(reason.cause)
@@ -271,6 +272,19 @@ class AutoBattle @Inject constructor(
 
     private fun isInBondScreen() = images[Images.Bond] in locations.resultBondRegion
 
+    /**
+     * 检查是否到达 11-15 级羁绊满级（检测国服“牵绊”文字与等级十位数数字“1”）
+     */
+    private fun isBond11To15MaxLevel(): Boolean {
+        if (!prefs.stopOnBondMax) return false
+        if (prefs.gameServer !is GameServer.Cn) return false
+
+        val hasLevelText = images[Images.BondLevelText] in locations.resultBondLevelTextRegion
+        val hasTens1 = images[Images.BondLevelTens1] in locations.resultBondLevelTens1Region
+
+        return hasLevelText && hasTens1
+    }
+
     private fun handleBondScreen(){
         canScreenshotBondCE = true
 
@@ -278,6 +292,11 @@ class AutoBattle @Inject constructor(
             screenshotDrops.screenshotBond()
             messages.notify(ScriptNotify.BondLevelUp)
             0.5.seconds.wait()
+        }
+
+        if (isBond11To15MaxLevel()) {
+            state.nextRun()
+            throw BattleExitException(ExitReason.BondMax)
         }
 
         result()
@@ -294,6 +313,11 @@ class AutoBattle @Inject constructor(
             screenshotDrops.screenshotBond()
             0.5.seconds.wait()
             canScreenshotBondCE = false
+        }
+
+        if (prefs.stopOnBondMax) {
+            state.nextRun()
+            throw BattleExitException(ExitReason.BondMax)
         }
 
         locations.scriptArea.center.click()

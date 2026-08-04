@@ -71,6 +71,8 @@ class PreferencesImpl @Inject constructor(
 
     override val stopOnFirstClearRewards by prefs.stopOnFirstClearRewards
 
+    override val stopOnBondMax by prefs.stopOnBondMax
+
     override val boostItemSelectionMode by prefs.boostItemSelectionMode
 
     override val useRootForScreenshots by prefs.useRootForScreenshots

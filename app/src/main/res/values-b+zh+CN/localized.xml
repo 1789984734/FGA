@@ -123,6 +123,8 @@
     <string name="p_stop_on_ce_get">"获得礼装时自动停止"</string>
     <string name="p_stop_on_first_clear_rewards">"获得首通奖励时自动停止"</string>
     <string name="p_stop_on_ce_get_summary">"首次通关及牵绊礼装获得时自动停止脚本"</string>
+    <string name="p_stop_on_bond_max">"羁绊达到上限时自动停止"</string>
+    <string name="p_stop_on_bond_max_summary">"检测到从者羁绊达到上限（10级或11–15级）时自动停止脚本"</string>
     <string name="p_screenshot_drops">"掉落截图"</string>
     <string name="p_screenshot_drops_summary">"存至 'drops' 文件夹"</string>
     <string name="p_screenshot_drops_unmodified">"保存未修改的截图"</string>
@@ -249,6 +251,7 @@
     <string name="ce_dropped">"礼装掉落！"</string>
     <string name="ce_get">"获得礼装！"</string>
     <string name="first_clear_rewards">"首通奖励！"</string>
+    <string name="bond_max_reached">"羁绊达到上限！"</string>
     <string name="withdraw_disabled">"无设定撤退且从者全灭"</string>
     <string name="stop_after_this_run">"本次执行后停止"</string>
     <string name="times_ran">"已执行 %d 次"</string>

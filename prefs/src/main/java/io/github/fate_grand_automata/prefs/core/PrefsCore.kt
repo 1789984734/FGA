@@ -37,6 +37,7 @@ class PrefsCore @Inject constructor(
 
     val stopOnCEGet = maker.bool("stop_on_ce_get")
     val stopOnFirstClearRewards = maker.bool("stop_on_first_clear_rewards")
+    val stopOnBondMax = maker.bool("stop_on_bond_max")
 
     val boostItemSelectionMode = maker.stringAsInt("selected_boost_item", -1)
 
@@ -93,7 +94,7 @@ class PrefsCore @Inject constructor(
                     val split = serialized.split(',')
 
                     Location(split[0].toInt(), split[1].toInt())
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Location()
                 }
 

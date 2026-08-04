@@ -124,6 +124,8 @@ Skills"</string>
     <string name="p_stop_on_ce_get">"Stop on CE GET"</string>
     <string name="p_stop_on_first_clear_rewards">"Stop on first-clear rewards"</string>
     <string name="p_stop_on_ce_get_summary">"First-time quest completion rewards and Bond CEs (Experimental)"</string>
+    <string name="p_stop_on_bond_max">"Stop on Bond MAX"</string>
+    <string name="p_stop_on_bond_max_summary">"Stops the script when a servant reaches max bond level (Bond 10 / 11–15)"</string>
     <string name="p_screenshot_drops">"Screenshot Drops"</string>
     <string name="p_screenshot_drops_summary">"Saved to 'drops' folder"</string>
     <string name="p_screenshot_drops_unmodified">"Save unmodified screenshots"</string>
@@ -250,6 +252,7 @@ Please turn on accessibility for this app from System settings. If it is already
     <string name="ce_dropped">"CE Dropped!"</string>
     <string name="ce_get">"CE GET!"</string>
     <string name="first_clear_rewards">"First-clear rewards!"</string>
+    <string name="bond_max_reached">"Bond MAX reached!"</string>
     <string name="withdraw_disabled">"All servants have been defeated and auto-withdrawing is disabled."</string>
     <string name="stop_after_this_run">"Stop after this run"</string>
     <string name="times_ran">"Ran %d time(s)"</string>

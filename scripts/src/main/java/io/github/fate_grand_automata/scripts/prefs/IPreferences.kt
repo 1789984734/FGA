@@ -16,6 +16,7 @@ interface IPreferences {
     val withdrawEnabled: Boolean
     val stopOnCEGet: Boolean
     val stopOnFirstClearRewards: Boolean
+    val stopOnBondMax: Boolean
     val boostItemSelectionMode: Int
 
     val useRootForScreenshots: Boolean

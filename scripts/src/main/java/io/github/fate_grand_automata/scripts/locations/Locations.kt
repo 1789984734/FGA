@@ -125,6 +125,9 @@ class Locations @Inject constructor(
     val resultMasterLvlUpRegion = Region(710, 160, 250, 270).xFromCenter()
     val resultScreenRegion = Region(-1180, 300, 700, 200).xFromCenter()
     val resultBondRegion = Region(720, 600, 120, 400).xFromCenter()
+    // 国服羁绊等级提升弹窗中“牵绊等级”字样与羁绊等级十位数“1”的检测区域
+    val resultBondLevelTextRegion = Region(-100, 500, 900, 400).xFromCenter()
+    val resultBondLevelTens1Region = Region(400, 600, 400, 350).xFromCenter()
 
     val resultCeRewardRegion = Region(-230, 1216, 33, 28).xFromCenter()
     val resultCeRewardDetailsRegion = Region(if (isWide) 193 else 0, 512, 135, 115)
