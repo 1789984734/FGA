@@ -273,19 +273,26 @@ class AutoBattle @Inject constructor(
     private fun isInBondScreen() = images[Images.Bond] in locations.resultBondRegion
 
     /**
-     * 检查是否到达羁绊满级：
-     * 1. 羁绊结算页面出现“最大值”标识（已满级从者经验下方）
-     * 2. 羁绊等级提升弹窗出现“牵绊等级”文字与十位数“1”
+     * 顺序2：检查羁绊等级提升弹窗中是否显示 11-15 级（检测国服"牵绊等级"文字与十位数"1"）
      */
-    private fun isBondMaxLevel(): Boolean {
+    private fun isBond11To15LevelUp(): Boolean {
         if (!prefs.stopOnBondMax) return false
         if (prefs.gameServer !is GameServer.Cn) return false
 
-        val hasBondMaxText = images[Images.BondMax] in locations.resultBondMaxRegion
         val hasLevelText = images[Images.BondLevelText] in locations.resultBondLevelTextRegion
         val hasTens1 = images[Images.BondLevelTens1] in locations.resultBondLevelTens1Region
 
-        return hasBondMaxText || (hasLevelText && hasTens1)
+        return hasLevelText && hasTens1
+    }
+
+    /**
+     * 顺序3（兜底）：检查羁绊结算页面中是否有从者显示"最大值"标识
+     */
+    private fun hasBondMaxText(): Boolean {
+        if (!prefs.stopOnBondMax) return false
+        if (prefs.gameServer !is GameServer.Cn) return false
+
+        return images[Images.BondMax] in locations.resultBondMaxRegion
     }
 
     private fun handleBondScreen(){
@@ -297,7 +304,8 @@ class AutoBattle @Inject constructor(
             0.5.seconds.wait()
         }
 
-        if (isBondMaxLevel()) {
+        // 顺序2：检测 11-15 级羁绊等级提升弹窗
+        if (isBond11To15LevelUp()) {
             state.nextRun()
             throw BattleExitException(ExitReason.BondMax)
         }
@@ -318,6 +326,7 @@ class AutoBattle @Inject constructor(
             canScreenshotBondCE = false
         }
 
+        // 顺序1：Bond 10 礼装弹窗，直接停止
         if (prefs.stopOnBondMax) {
             state.nextRun()
             throw BattleExitException(ExitReason.BondMax)
@@ -350,6 +359,17 @@ class AutoBattle @Inject constructor(
      */
     private fun result() {
         isInBattle = false
+
+        // 如果开启了羁绊满级自动停止，先等待结算界面和弹窗完成动画渲染再检测
+        if (prefs.stopOnBondMax) {
+            1.seconds.wait()
+
+            if (hasBondMaxText() || isBond11To15LevelUp()) {
+                state.nextRun()
+                throw BattleExitException(ExitReason.BondMax)
+            }
+        }
+
         locations.resultClick.click(
             times = if (prefs.screenshotBond) 5 else 15
         )
