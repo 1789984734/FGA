@@ -273,16 +273,19 @@ class AutoBattle @Inject constructor(
     private fun isInBondScreen() = images[Images.Bond] in locations.resultBondRegion
 
     /**
-     * 检查是否到达 11-15 级羁绊满级（检测国服“牵绊”文字与等级十位数数字“1”）
+     * 检查是否到达羁绊满级：
+     * 1. 羁绊结算页面出现“最大值”标识（已满级从者经验下方）
+     * 2. 羁绊等级提升弹窗出现“牵绊等级”文字与十位数“1”
      */
-    private fun isBond11To15MaxLevel(): Boolean {
+    private fun isBondMaxLevel(): Boolean {
         if (!prefs.stopOnBondMax) return false
         if (prefs.gameServer !is GameServer.Cn) return false
 
+        val hasBondMaxText = images[Images.BondMax] in locations.resultBondMaxRegion
         val hasLevelText = images[Images.BondLevelText] in locations.resultBondLevelTextRegion
         val hasTens1 = images[Images.BondLevelTens1] in locations.resultBondLevelTens1Region
 
-        return hasLevelText && hasTens1
+        return hasBondMaxText || (hasLevelText && hasTens1)
     }
 
     private fun handleBondScreen(){
@@ -294,7 +297,7 @@ class AutoBattle @Inject constructor(
             0.5.seconds.wait()
         }
 
-        if (isBond11To15MaxLevel()) {
+        if (isBondMaxLevel()) {
             state.nextRun()
             throw BattleExitException(ExitReason.BondMax)
         }

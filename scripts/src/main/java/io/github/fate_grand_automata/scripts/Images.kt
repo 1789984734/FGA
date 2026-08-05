@@ -96,4 +96,5 @@ enum class Images(val path: String) {
     BondCeEffectNP("bond_ce_effect_np.png"),
     BondLevelText("bond_level_text.png"),
     BondLevelTens1("bond_level_tens_1.png"),
+    BondMax("bond_max.png"),
 }
