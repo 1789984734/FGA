@@ -349,6 +349,11 @@ class AutoBattle @Inject constructor(
             state.nextRun()
 
             throw BattleExitException(ExitReason.CEGet)
+        } else if (prefs.stopOnBondMax) {
+            // 10 级羁绊礼装详情界面同样触发羁绊上限停止
+            state.nextRun()
+
+            throw BattleExitException(ExitReason.BondMax)
         } else messages.notify(ScriptNotify.CEGet)
 
         locations.resultCeRewardCloseClick.click()
