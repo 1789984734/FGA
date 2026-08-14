@@ -105,7 +105,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
 
     implementation(libs.opencv)
-    implementation(libs.tesseract4android)
+    implementation(libs.mlkit.text.recognition.chinese)
 
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.viewmodel.savedstate)

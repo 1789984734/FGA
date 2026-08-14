@@ -28,7 +28,7 @@ opencv_version = "4.11.0"
 navigation_compose_version = "2.9.8"
 
 recyclerview_version = "1.4.0"
-tesseract4android_version = "4.9.0"
+mlkit_text_recognition_chinese_version = "16.0.1"
 
 timber_version = "5.0.1"
 
@@ -80,7 +80,7 @@ androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout_version" }
 
 opencv = { group = "org.opencv", name = "opencv", version.ref = "opencv_version" }
-tesseract4android = { module = "cz.adaptech.tesseract4android:tesseract4android", version.ref = "tesseract4android_version" }
+mlkit-text-recognition-chinese = { module = "com.google.mlkit:text-recognition-chinese", version.ref = "mlkit_text_recognition_chinese_version" }
 
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit_bom_version" }
 
