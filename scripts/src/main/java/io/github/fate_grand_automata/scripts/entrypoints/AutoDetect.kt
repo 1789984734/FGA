@@ -30,6 +30,9 @@ class AutoDetect @Inject constructor(
             locations.support.confirmSetupButtonRegion.exists(images[Images.SupportConfirmSetupButton], similarity = 0.75) ->
                 ScriptModeEnum.SupportImageMaker
 
+            isSkillEnhancementPage() ->
+                ScriptModeEnum.Skill
+
             mapOf(
                 images[Images.ServantAutoSelect] to locations.servant.servantAutoSelectRegion,
                 images[Images.ServantAutoSelectOff] to locations.servant.servantAutoSelectRegion,
@@ -43,4 +46,12 @@ class AutoDetect @Inject constructor(
             else -> ScriptModeEnum.Battle
         }
     }
+
+    private fun isSkillEnhancementPage() =
+        locations.enhancementBannerRegion
+            .exists(images[Images.SkillMenuBanner], similarity = 0.72) &&
+            (1..3).any { skillNumber ->
+                locations.skill.selectedIndicatorRegion(skillNumber)
+                    .exists(images[Images.SkillSelected], similarity = 0.85)
+            }
 }

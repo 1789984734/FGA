@@ -486,4 +486,21 @@
     <string name="servant_enhancement_none_selected">"未选择从者。请选择一名从者后再继续。"</string>
     <string name="servant_enhancement_aborted">"从者强化终止"</string>
     <string name="note">"注意："</string>
+
+    <string name="skill_upgrade">"技能强化"</string>
+    <string name="skill_upgrade_to_level_10">"将三个技能都强化到10级"</string>
+    <string name="skill_upgrade_to_level_10_description">"未勾选：三个技能都强化到9级。勾选：三个技能都强化到10级，并消耗传承结晶。"</string>
+    <string name="skill_upgrade_done">"技能强化完成"</string>
+    <string name="skill_upgrade_qp_insufficient">"QP不足，技能强化已停止"</string>
+    <string name="skill_upgrade_no_servant_selected">"未选择从者，请先选择从者再开始"</string>
+    <string name="skill_upgrade_stopped_by_user">"使用者停止了技能强化"</string>
+    <string name="skill_upgrade_page_recognition_failed">"无法识别技能强化页面"</string>
+    <string name="skill_upgrade_ocr_failed">"无法识别技能等级"</string>
+    <string name="skill_upgrade_number">"技能%1$d"</string>
+    <string name="skill_upgrade_level_change">"等级 %1$d → %2$d"</string>
+    <string name="skill_upgrade_materials_insufficient">"材料不足，已跳过此技能"</string>
+    <string name="skill_upgrade_target_reached">"已达到目标等级"</string>
+    <string name="skill_upgrade_not_processed_qp">"因QP不足而未处理"</string>
+    <string name="skill_upgrade_unavailable">"不可用"</string>
+    <string name="skill_upgrade_target_not_reached">"未达到目标等级%1$d"</string>
 </resources>

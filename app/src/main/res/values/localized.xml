@@ -496,4 +496,21 @@ After pressing on the button, switch the app filter from \"Not optimized\" to \"
     <string name="state_off">Off</string>
     <string name="save">Save</string>
     <string name="reset">Reset</string>
+
+    <string name="skill_upgrade">"Skill Enhancement"</string>
+    <string name="skill_upgrade_to_level_10">"Upgrade all three skills to level 10"</string>
+    <string name="skill_upgrade_to_level_10_description">"Unchecked: upgrade all three skills to level 9. Checked: upgrade all three skills to level 10 and consume Crystallized Lores."</string>
+    <string name="skill_upgrade_done">"Skill enhancement complete"</string>
+    <string name="skill_upgrade_qp_insufficient">"Insufficient QP. Skill enhancement stopped."</string>
+    <string name="skill_upgrade_no_servant_selected">"No Servant selected. Select a Servant before starting."</string>
+    <string name="skill_upgrade_stopped_by_user">"Skill enhancement stopped by user"</string>
+    <string name="skill_upgrade_page_recognition_failed">"Unable to recognize the Skill Enhancement screen"</string>
+    <string name="skill_upgrade_ocr_failed">"Unable to recognize the skill level"</string>
+    <string name="skill_upgrade_number">"Skill %1$d"</string>
+    <string name="skill_upgrade_level_change">"Level %1$d → %2$d"</string>
+    <string name="skill_upgrade_materials_insufficient">"Insufficient materials; skipped this skill"</string>
+    <string name="skill_upgrade_target_reached">"Target level reached"</string>
+    <string name="skill_upgrade_not_processed_qp">"Not processed because QP ran out"</string>
+    <string name="skill_upgrade_unavailable">"Unavailable"</string>
+    <string name="skill_upgrade_target_not_reached">"Target level %1$d was not reached"</string>
 </resources>

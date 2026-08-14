@@ -15,6 +15,7 @@ class Locations @Inject constructor(
     val support: SupportScreenLocations,
     val attack: AttackScreenLocations,
     val battle: BattleScreenLocations,
+    val skill: SkillLocations,
     val servant: ServantLevelLocations,
 ) : IScriptAreaTransforms by scriptAreaTransforms {
 
@@ -125,9 +126,9 @@ class Locations @Inject constructor(
     val resultMasterLvlUpRegion = Region(710, 160, 250, 270).xFromCenter()
     val resultScreenRegion = Region(-1180, 300, 700, 200).xFromCenter()
     val resultBondRegion = Region(720, 600, 120, 400).xFromCenter()
-    // 国服羁绊等级提升弹窗中“牵绊等级”字样与羁绊等级十位数“1”的检测区域
+    // 国服羁绊等级提升弹窗中“牵绊等级”字样与箭头左侧升级前等级的检测区域
     val resultBondLevelTextRegion = Region(-100, 500, 900, 400).xFromCenter()
-    val resultBondLevelTens1Region = Region(400, 600, 400, 350).xFromCenter()
+    val resultBondPreviousLevelRegion = Region(520, 720, 260, 180).xFromCenter()
     // 国服羁绊结算画面中从者经验下方“最大值”标识的检测区域
     val resultBondMaxRegion = Region(-1200, 900, 2400, 200).xFromCenter()
 
@@ -158,6 +159,11 @@ class Locations @Inject constructor(
     val enhancementBannerRegion = when(isWide) {
         true -> Region(-412, 282, 241, 37).xFromCenter()
         false -> Region(-413, 324, 241, 37).xFromCenter()
+    }
+
+    val insufficientQPRegion = when (isWide) {
+        true -> Region(-510, 190, 620, 60).xFromCenter()
+        false -> Region(-510, 220, 620, 60).xFromCenter()
     }
 
     val enhancementClick = when (isWide) {

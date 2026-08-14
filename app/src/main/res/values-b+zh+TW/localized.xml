@@ -396,4 +396,20 @@ Order Change"</string>
     <string name="p_max_gold_ember_total_count">"金種火最大領取數（總枚數）"</string>
     <string name="update_download_success">"更新已下載完成，於 5 秒鐘後重啟"</string>
     <string name="p_battle_config_use_servant_priority">"偏好從者"</string>
-                                                                                                                </resources>
+    <string name="skill_upgrade">"技能強化"</string>
+    <string name="skill_upgrade_to_level_10">"將三個技能都強化到10級"</string>
+    <string name="skill_upgrade_to_level_10_description">"未勾選：三個技能都強化到9級。勾選：三個技能都強化到10級，並消耗傳承結晶。"</string>
+    <string name="skill_upgrade_done">"技能強化完成"</string>
+    <string name="skill_upgrade_qp_insufficient">"QP不足，技能強化已停止"</string>
+    <string name="skill_upgrade_no_servant_selected">"未選擇從者，請先選擇從者再開始"</string>
+    <string name="skill_upgrade_stopped_by_user">"使用者停止了技能強化"</string>
+    <string name="skill_upgrade_page_recognition_failed">"無法辨識技能強化頁面"</string>
+    <string name="skill_upgrade_ocr_failed">"無法辨識技能等級"</string>
+    <string name="skill_upgrade_number">"技能%1$d"</string>
+    <string name="skill_upgrade_level_change">"等級 %1$d → %2$d"</string>
+    <string name="skill_upgrade_materials_insufficient">"材料不足，已略過此技能"</string>
+    <string name="skill_upgrade_target_reached">"已達到目標等級"</string>
+    <string name="skill_upgrade_not_processed_qp">"因QP不足而未處理"</string>
+    <string name="skill_upgrade_unavailable">"不可用"</string>
+    <string name="skill_upgrade_target_not_reached">"未達到目標等級%1$d"</string>
+</resources>

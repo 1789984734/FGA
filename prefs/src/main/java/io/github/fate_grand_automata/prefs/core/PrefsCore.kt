@@ -150,5 +150,6 @@ class PrefsCore @Inject constructor(
         }
 
     val servantEnhancement = ServantEnhancementPrefsCore(maker)
+    val skill = SkillPrefsCore(maker)
 
 }

@@ -68,7 +68,36 @@ class StandardAutomataApi @Inject constructor(
             .also { highlight(this, HighlightColor.Info) }
             .use {
                 return ocrService.detectText(it)
+        }
+    }
+
+    override fun Region.detectDigits(): String {
+        screenshotManager.getScreenshot()
+            .crop(transform.toImage(this))
+            .threshold(0.5)
+            .also { highlight(this, HighlightColor.Info) }
+            .use {
+                return ocrService.detectDigits(it)
             }
+    }
+
+    override fun Region.findNumberInText(
+        replacements: Map<Char, Char>,
+        outlinedText: Boolean
+    ) = findLongInText(replacements, outlinedText)?.toIntExactOrNull()
+
+    override fun Region.findLongInText(
+        replacements: Map<Char, Char>,
+        outlinedText: Boolean
+    ): Long? {
+        val normalized = (if (outlinedText) detectText(true) else detectDigits())
+            .map { replacements[it] ?: it }
+            .joinToString("")
+
+        return NUMBER_REGEX.find(normalized)
+            ?.value
+            ?.filter(Char::isDigit)
+            ?.toLongOrNull()
     }
 
     override fun Map<Pattern, Region>.exists(
@@ -79,5 +108,11 @@ class StandardAutomataApi @Inject constructor(
         similarity = similarity,
         requireAll = requireAll
     )
-}
 
+    private companion object {
+        val NUMBER_REGEX = Regex("""\d[\d,.'’]*""")
+
+        fun Long.toIntExactOrNull() =
+            takeIf { it in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() }?.toInt()
+    }
+}

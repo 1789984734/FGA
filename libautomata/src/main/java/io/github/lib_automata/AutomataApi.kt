@@ -62,6 +62,25 @@ interface AutomataApi {
 
     fun Region.detectText(outlinedText: Boolean = false): String
 
+    /** Recognizes only decimal digits in this region. */
+    fun Region.detectDigits(): String
+
+    /**
+     * Extracts the first decimal number found by OCR in this region.
+     *
+     * OCR failures return null. Callers must never substitute a value that could cause an action.
+     */
+    fun Region.findNumberInText(
+        replacements: Map<Char, Char> = emptyMap(),
+        outlinedText: Boolean = false
+    ): Int?
+
+    /** Same as [findNumberInText], but supports values larger than [Int.MAX_VALUE]. */
+    fun Region.findLongInText(
+        replacements: Map<Char, Char> = emptyMap(),
+        outlinedText: Boolean = false
+    ): Long?
+
     fun Map<Pattern, Region>.exists(
         timeout: Duration = Duration.ZERO,
         similarity: Double? = null,

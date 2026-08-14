@@ -394,4 +394,20 @@ Sau khi nhấn nút, hãy chuyển bộ lọc ứng dụng từ \"Không đượ
     <string name="p_max_gold_ember_total_count">"Tổng số lượng than hồng vàng tối đa"</string>
     <string name="update_download_success">"Tải xuống thành công. Khởi động lại ứng dụng sau 5 giây."</string>
     <string name="p_battle_config_use_servant_priority">"Sử dụng ưu tiên Servant"</string>
-                                                                                                                        </resources>
+    <string name="skill_upgrade">"Cường hóa kỹ năng"</string>
+    <string name="skill_upgrade_to_level_10">"Cường hóa cả ba kỹ năng lên cấp 10"</string>
+    <string name="skill_upgrade_to_level_10_description">"Không chọn: cường hóa cả ba kỹ năng lên cấp 9. Chọn: cường hóa cả ba kỹ năng lên cấp 10 và tiêu thụ Crystallized Lore."</string>
+    <string name="skill_upgrade_done">"Đã hoàn tất cường hóa kỹ năng"</string>
+    <string name="skill_upgrade_qp_insufficient">"Không đủ QP. Đã dừng cường hóa kỹ năng."</string>
+    <string name="skill_upgrade_no_servant_selected">"Chưa chọn Servant. Hãy chọn một Servant trước khi bắt đầu."</string>
+    <string name="skill_upgrade_stopped_by_user">"Người dùng đã dừng cường hóa kỹ năng"</string>
+    <string name="skill_upgrade_page_recognition_failed">"Không thể nhận diện màn hình Cường hóa kỹ năng"</string>
+    <string name="skill_upgrade_ocr_failed">"Không thể nhận diện cấp kỹ năng"</string>
+    <string name="skill_upgrade_number">"Kỹ năng %1$d"</string>
+    <string name="skill_upgrade_level_change">"Cấp %1$d → %2$d"</string>
+    <string name="skill_upgrade_materials_insufficient">"Không đủ nguyên liệu; đã bỏ qua kỹ năng này"</string>
+    <string name="skill_upgrade_target_reached">"Đã đạt cấp mục tiêu"</string>
+    <string name="skill_upgrade_not_processed_qp">"Chưa xử lý vì đã hết QP"</string>
+    <string name="skill_upgrade_unavailable">"Không khả dụng"</string>
+    <string name="skill_upgrade_target_not_reached">"Chưa đạt cấp mục tiêu %1$d"</string>
+</resources>

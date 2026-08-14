@@ -16,6 +16,10 @@ sealed class ScriptLauncherResponse {
     data object SupportImageMaker : ScriptLauncherResponse()
     data object Battle : ScriptLauncherResponse()
 
+    data class SkillEnhancement(
+        val upgradeToLevel10: Boolean
+    ) : ScriptLauncherResponse()
+
     data object ServantEnhancement : ScriptLauncherResponse()
 }
 

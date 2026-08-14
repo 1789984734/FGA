@@ -21,11 +21,13 @@ import io.github.fate_grand_automata.scripts.entrypoints.AutoFriendGacha
 import io.github.fate_grand_automata.scripts.entrypoints.AutoGiftBox
 import io.github.fate_grand_automata.scripts.entrypoints.AutoLottery
 import io.github.fate_grand_automata.scripts.entrypoints.AutoServantLevel
+import io.github.fate_grand_automata.scripts.entrypoints.AutoSkillUpgrade
 import io.github.fate_grand_automata.scripts.entrypoints.SupportImageMaker
 import io.github.fate_grand_automata.scripts.enums.GameServer
 import io.github.fate_grand_automata.scripts.enums.ScriptModeEnum
 import io.github.fate_grand_automata.scripts.prefs.IPreferences
 import io.github.fate_grand_automata.ui.exit.BattleExit
+import io.github.fate_grand_automata.ui.exit.SkillExit
 import io.github.fate_grand_automata.ui.launcher.ScriptLauncher
 import io.github.fate_grand_automata.ui.launcher.ScriptLauncherResponse
 import io.github.fate_grand_automata.ui.runner.ScriptRunnerUIState
@@ -100,6 +102,75 @@ class ScriptManager @Inject constructor(
                     continuation.resume(Unit)
                 }
             }
+        }
+    }
+
+    private suspend fun showSkillExit(
+        context: Context,
+        exception: AutoSkillUpgrade.ExitException
+    ) = withContext(Dispatchers.Main) {
+        suspendCancellableCoroutine<Unit> { continuation ->
+            var dialog: DialogInterface? = null
+
+            val composeView = FakedComposeView(context) {
+                SkillExit(
+                    exception = exception,
+                    onClose = { dialog?.dismiss() },
+                    onCopy = {
+                        val error = (exception.reason as? AutoSkillUpgrade.ExitReason.Unexpected)?.e
+                            ?: exception
+                        clipboardManager.set(context, error)
+                    }
+                )
+            }
+
+            dialog = showOverlayDialog(context) {
+                setView(composeView.view)
+
+                setOnDismissListener {
+                    composeView.close()
+                    continuation.resume(Unit)
+                }
+            }
+        }
+    }
+
+    private fun skillExitMessage(exception: AutoSkillUpgrade.ExitException): String {
+        val reason = exception.reason
+
+        return when (reason) {
+            AutoSkillUpgrade.ExitReason.Done ->
+                context.getString(R.string.skill_upgrade_done)
+
+            AutoSkillUpgrade.ExitReason.RanOutOfQP ->
+                context.getString(R.string.skill_upgrade_qp_insufficient)
+
+            AutoSkillUpgrade.ExitReason.NoServantSelected ->
+                context.getString(R.string.skill_upgrade_no_servant_selected)
+
+            AutoSkillUpgrade.ExitReason.PageRecognitionFailed ->
+                context.getString(R.string.skill_upgrade_page_recognition_failed)
+
+            is AutoSkillUpgrade.ExitReason.OcrFailed ->
+                "${context.getString(R.string.skill_upgrade_number, reason.skillNumber)}: " +
+                    context.getString(R.string.skill_upgrade_ocr_failed)
+
+            is AutoSkillUpgrade.ExitReason.NoProgress -> {
+                val targetLevel = exception.state.skillSummaryList
+                    .firstOrNull { it.skillNumber == reason.skillNumber }
+                    ?.targetLevel
+                val detail = targetLevel?.let {
+                    context.getString(R.string.skill_upgrade_target_not_reached, it)
+                } ?: context.getString(R.string.unexpected_error)
+
+                "${context.getString(R.string.skill_upgrade_number, reason.skillNumber)}: $detail"
+            }
+
+            AutoSkillUpgrade.ExitReason.Abort ->
+                context.getString(R.string.skill_upgrade_stopped_by_user)
+
+            is AutoSkillUpgrade.ExitReason.Unexpected ->
+                "${context.getString(R.string.unexpected_error)}: ${reason.e.message.orEmpty()}"
         }
     }
 
@@ -203,6 +274,16 @@ class ScriptManager @Inject constructor(
 
                 showBattleExit(service, e)
             }
+            is AutoSkillUpgrade.ExitException -> {
+                val msg = skillExitMessage(e)
+
+                (e.reason as? AutoSkillUpgrade.ExitReason.Unexpected)?.let { reason ->
+                    Timber.e(reason.e, "Unexpected skill enhancement error")
+                }
+
+                messages.notify(msg)
+                showSkillExit(service, e)
+            }
             is AutoServantLevel.ExitException -> {
                 val msg = when (val reason = e.reason) {
                     AutoServantLevel.ExitReason.NoServantSelected ->
@@ -280,6 +361,7 @@ class ScriptManager @Inject constructor(
             ScriptModeEnum.SupportImageMaker -> entryPoint.supportImageMaker()
             ScriptModeEnum.CEBomb -> entryPoint.ceBomb()
             ScriptModeEnum.ServantLevel -> entryPoint.servantLevel()
+            ScriptModeEnum.Skill -> entryPoint.skill()
         }
 
     enum class PauseAction {

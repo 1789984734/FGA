@@ -414,4 +414,20 @@
 
     <string name="p_battle_config_use_servant_priority">"サーヴァントの優先順位を設定する"</string>
 
+    <string name="skill_upgrade">"スキル強化"</string>
+    <string name="skill_upgrade_to_level_10">"3つのスキルをすべてレベル10まで強化"</string>
+    <string name="skill_upgrade_to_level_10_description">"未選択：3つのスキルをすべてレベル9まで強化します。選択：3つのスキルをすべてレベル10まで強化し、伝承結晶を消費します。"</string>
+    <string name="skill_upgrade_done">"スキル強化が完了しました"</string>
+    <string name="skill_upgrade_qp_insufficient">"QPが不足しているため、スキル強化を停止しました"</string>
+    <string name="skill_upgrade_no_servant_selected">"サーヴァントが選択されていません。開始前に選択してください"</string>
+    <string name="skill_upgrade_stopped_by_user">"ユーザーがスキル強化を停止しました"</string>
+    <string name="skill_upgrade_page_recognition_failed">"スキル強化画面を認識できません"</string>
+    <string name="skill_upgrade_ocr_failed">"スキルレベルを認識できません"</string>
+    <string name="skill_upgrade_number">"スキル%1$d"</string>
+    <string name="skill_upgrade_level_change">"レベル %1$d → %2$d"</string>
+    <string name="skill_upgrade_materials_insufficient">"素材不足のため、このスキルをスキップしました"</string>
+    <string name="skill_upgrade_target_reached">"目標レベルに到達しました"</string>
+    <string name="skill_upgrade_not_processed_qp">"QP不足のため未処理です"</string>
+    <string name="skill_upgrade_unavailable">"利用できません"</string>
+    <string name="skill_upgrade_target_not_reached">"目標レベル%1$dに到達しませんでした"</string>
 </resources>

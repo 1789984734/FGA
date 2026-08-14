@@ -40,6 +40,18 @@ fun IFgoAutomataApi.isInventoryFull() =
             && images[Images.InventoryFull] in locations.inventoryFullRegion
 
 /**
+ * The level-up dialog shows the previous bond level on the left and the reached level on the right.
+ * OCR reads the previous level because its solid white digits are more reliable than the outlined
+ * yellow digits on the right.
+ */
+internal fun isBondLevelUpTo11Through15(previousLevelText: String): Boolean {
+    val previousLevel = previousLevelText.trim().toIntOrNull() ?: return false
+    val reachedLevel = previousLevel + 1
+
+    return reachedLevel in 11..15
+}
+
+/**
  * Script for starting quests, selecting the support and doing battles.
  */
 @ScriptScope
@@ -273,16 +285,20 @@ class AutoBattle @Inject constructor(
     private fun isInBondScreen() = images[Images.Bond] in locations.resultBondRegion
 
     /**
-     * 顺序2：检查羁绊等级提升弹窗中是否显示 11-15 级（检测国服"牵绊等级"文字与十位数"1"）
+     * 顺序2：检查羁绊等级提升弹窗中是否达到 11-15 级。
+     * 固定的“牵绊等级”文字继续使用模板匹配，完整等级数字使用本地 OCR。
      */
     private fun isBond11To15LevelUp(): Boolean {
         if (!prefs.stopOnBondMax) return false
         if (prefs.gameServer !is GameServer.Cn) return false
 
-        val hasLevelText = images[Images.BondLevelText] in locations.resultBondLevelTextRegion
-        val hasTens1 = images[Images.BondLevelTens1] in locations.resultBondLevelTens1Region
+        return useSameSnapIn {
+            val hasLevelText = images[Images.BondLevelText] in locations.resultBondLevelTextRegion
+            if (!hasLevelText) return@useSameSnapIn false
 
-        return hasLevelText && hasTens1
+            val previousLevelText = locations.resultBondPreviousLevelRegion.detectDigits()
+            isBondLevelUpTo11Through15(previousLevelText)
+        }
     }
 
     /**
