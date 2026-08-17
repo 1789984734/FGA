@@ -22,6 +22,7 @@ import io.github.fate_grand_automata.scripts.entrypoints.AutoGiftBox
 import io.github.fate_grand_automata.scripts.entrypoints.AutoLottery
 import io.github.fate_grand_automata.scripts.entrypoints.AutoServantLevel
 import io.github.fate_grand_automata.scripts.entrypoints.AutoSkillUpgrade
+import io.github.fate_grand_automata.scripts.entrypoints.AutoSoundPlayer
 import io.github.fate_grand_automata.scripts.entrypoints.SupportImageMaker
 import io.github.fate_grand_automata.scripts.enums.GameServer
 import io.github.fate_grand_automata.scripts.enums.ScriptModeEnum
@@ -331,6 +332,16 @@ class ScriptManager @Inject constructor(
                 messageBox.show(scriptExitedString, msg)
             }
 
+            is AutoSoundPlayer.ExitException -> {
+                val msg = when (val reason = e.reason) {
+                    is AutoSoundPlayer.ExitReason.Finished ->
+                        context.getString(R.string.sound_player_unlocked_count, reason.unlockedCount)
+                }
+
+                messages.notify(msg)
+                messageBox.show(scriptExitedString, msg)
+            }
+
             is KnownException -> {
                 messages.notify(scriptExitedString)
 
@@ -362,6 +373,7 @@ class ScriptManager @Inject constructor(
             ScriptModeEnum.CEBomb -> entryPoint.ceBomb()
             ScriptModeEnum.ServantLevel -> entryPoint.servantLevel()
             ScriptModeEnum.Skill -> entryPoint.skill()
+            ScriptModeEnum.SoundPlayer -> entryPoint.soundPlayer()
         }
 
     enum class PauseAction {

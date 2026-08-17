@@ -9,4 +9,5 @@ enum class ScriptModeEnum {
     CEBomb,
     Skill,
     ServantLevel,
+    SoundPlayer,
 }

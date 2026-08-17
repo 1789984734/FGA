@@ -43,7 +43,37 @@ class AutoDetect @Inject constructor(
             images[Images.EmptyEnhance] in locations.emptyEnhanceRegion ->
                 ScriptModeEnum.CEBomb
 
+            isSoundPlayerPage() ->
+                ScriptModeEnum.SoundPlayer
+
             else -> ScriptModeEnum.Battle
+        }
+    }
+
+    private fun isSoundPlayerPage(): Boolean {
+        // 1. 优先使用 OpenCV 模板匹配右上角标题
+        if (locations.soundPlayer.titleRegion.exists(images[Images.SoundPlayer], similarity = 0.65)) {
+            return true
+        }
+
+        // 2. 备用：检查列表中是否有未开放的【所需】标记
+        val hasSoundRequire = locations.soundPlayer.listCheckRegion.exists(images[Images.SoundRequire], similarity = 0.55)
+        if (hasSoundRequire) {
+            return true
+        }
+
+        // 3. 备用：本地 OCR 识别
+        return try {
+            val text = locations.soundPlayer.titleRegion.detectText().lowercase()
+            "音乐鉴赏" in text ||
+                    "音乐" in text ||
+                    "鉴赏" in text ||
+                    "sound" in text ||
+                    "player" in text ||
+                    "サウンド" in text ||
+                    "プレイヤー" in text
+        } catch (_: Throwable) {
+            false
         }
     }
 

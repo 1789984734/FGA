@@ -14,9 +14,11 @@ import javax.inject.Inject
 
 @ScriptScope
 class MlKitOcrService @Inject constructor() : OcrService {
-    private val recognizer = TextRecognition.getClient(
-        ChineseTextRecognizerOptions.Builder().build()
-    )
+    private val recognizer by lazy {
+        TextRecognition.getClient(
+            ChineseTextRecognizerOptions.Builder().build()
+        )
+    }
 
     override fun detectText(pattern: Pattern): String = recognize(pattern)
 
@@ -30,14 +32,17 @@ class MlKitOcrService @Inject constructor() : OcrService {
                 val result = Tasks.await(recognizer.process(image))
                 result.text
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Timber.e(e, "ML Kit OCR 识别失败")
             ""
         }
     }
 
     protected fun finalize() {
-        recognizer.close()
+        try {
+            recognizer.close()
+        } catch (_: Throwable) {
+        }
     }
 
     private companion object {

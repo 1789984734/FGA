@@ -206,6 +206,10 @@
     <string name="p_script_mode_fp">"友情点召唤"</string>
     <string name="p_script_mode_support_image_maker">"助战图片截取器"</string>
     <string name="p_script_mode_gift_box">"礼物盒"</string>
+    <string name="p_script_mode_sound_player">"音乐鉴赏"</string>
+    <string name="sound_player_title">"音乐鉴赏"</string>
+    <string name="sound_player_description">"自动开放未解锁的音乐鉴赏曲目"</string>
+    <string name="sound_player_unlocked_count">"已成功开放 %d 首音乐"</string>
     <string name="p_max_gold_ember_set_size">"金种火最大领取数（堆数）"</string>
     <string name="p_not_set">"未设定"</string>
     <string name="p_support_class_none">"无"</string>

@@ -41,6 +41,7 @@ fun ScriptLauncher(
                 ScriptModeEnum.CEBomb -> ceBombLauncher(prefs, modifier)
                 ScriptModeEnum.ServantLevel -> servantLevelLauncher(prefsCore.servantEnhancement, modifier)
                 ScriptModeEnum.Skill -> skillLauncher(modifier)
+                ScriptModeEnum.SoundPlayer -> soundPlayerLauncher(modifier)
             }
 
             HorizontalDivider()

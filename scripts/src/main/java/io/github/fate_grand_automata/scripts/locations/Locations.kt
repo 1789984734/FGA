@@ -17,6 +17,7 @@ class Locations @Inject constructor(
     val battle: BattleScreenLocations,
     val skill: SkillLocations,
     val servant: ServantLevelLocations,
+    val soundPlayer: SoundPlayerLocations,
 ) : IScriptAreaTransforms by scriptAreaTransforms {
 
     val continueRegion = Region(120, 1000, 800, 300).xFromCenter()

@@ -21,6 +21,7 @@ sealed class ScriptLauncherResponse {
     ) : ScriptLauncherResponse()
 
     data object ServantEnhancement : ScriptLauncherResponse()
+    data object SoundPlayer : ScriptLauncherResponse()
 }
 
 class ScriptLauncherResponseBuilder(

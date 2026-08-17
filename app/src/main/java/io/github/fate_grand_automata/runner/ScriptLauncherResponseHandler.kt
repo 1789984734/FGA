@@ -60,6 +60,10 @@ class ScriptLauncherResponseHandler @Inject constructor(
             is ScriptLauncherResponse.ServantEnhancement -> {
                 ScriptModeEnum.ServantLevel
             }
+
+            ScriptLauncherResponse.SoundPlayer -> {
+                ScriptModeEnum.SoundPlayer
+            }
         }
     }
 }

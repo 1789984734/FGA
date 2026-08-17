@@ -100,4 +100,8 @@ enum class Images(val path: String) {
     BondCeEffectNP("bond_ce_effect_np.png"),
     BondLevelText("bond_level_text.png"),
     BondMax("bond_max.png"),
+    MusicPlay("music_play.png"),
+    SoundExecute("sound_execute.png"),
+    SoundPlayer("sound_player.png"),
+    SoundRequire("sound_require.png"),
 }
