@@ -2,6 +2,7 @@ plugins {
     id("java-library")
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
@@ -10,6 +11,7 @@ dependencies {
     api(project(":libautomata"))
 
     implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.dagger.hilt.core)
     ksp(libs.dagger.hilt.compiler)
@@ -23,8 +25,8 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.test {

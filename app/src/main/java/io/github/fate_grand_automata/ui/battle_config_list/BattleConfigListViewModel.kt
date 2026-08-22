@@ -6,7 +6,7 @@ import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
+import kotlinx.serialization.json.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.BattleConfigCore
@@ -88,7 +88,6 @@ class BattleConfigListViewModel @Inject constructor(
         var failed = 0
 
         withContext(Dispatchers.IO) {
-            val gson = Gson()
             val resolver = context.contentResolver
             val dir = DocumentFile.fromTreeUri(context, dirUri)
 
@@ -96,14 +95,25 @@ class BattleConfigListViewModel @Inject constructor(
 
             configs.forEach { battleConfig ->
                 val values = battleConfig.export()
-                val json = gson.toJson(values)
+                val jsonObject = buildJsonObject {
+                    for ((key, value) in values) {
+                        when (value) {
+                            is String -> put(key, value)
+                            is Number -> put(key, JsonPrimitive(value))
+                            is Boolean -> put(key, value)
+                            is Set<*> -> putJsonArray(key) { value.forEach { add(it.toString()) } }
+                            null -> put(key, JsonNull)
+                            else -> put(key, value.toString())
+                        }
+                    }
+                }
 
                 try {
                     dir?.createFile("*/*", "${battleConfig.name}.fga")
                         ?.uri
                         ?.let { uri ->
                             resolver.openOutputStream(uri)?.use { outStream ->
-                                outStream.writer().use { it.write(json) }
+                                outStream.writer().use { it.write(jsonObject.toString()) }
                             }
                         }
                 } catch (e: Exception) {
@@ -133,20 +143,30 @@ class BattleConfigListViewModel @Inject constructor(
         var failed = 0
 
         withContext(Dispatchers.IO) {
-            val gson = Gson()
-
             uris.forEach { uri ->
                 try {
-                    val json = context.contentResolver.openInputStream(uri)?.use { inStream ->
+                    val jsonText = context.contentResolver.openInputStream(uri)?.use { inStream ->
                         inStream.use {
                             it.reader().readText()
                         }
                     }
 
-                    if (json != null) {
-                        val map = gson.fromJson(json, Map::class.java)
-                            .map { (k, v) -> k.toString() to v }
-                            .toMap()
+                    if (jsonText != null) {
+                        val jsonObject = Json.parseToJsonElement(jsonText).jsonObject
+                        val map = jsonObject.entries.associate { (key, element) ->
+                            key to when (element) {
+                                is JsonArray -> element.map { it.jsonPrimitive.content }.toSet()
+                                is JsonPrimitive -> when {
+                                    element.isString -> element.content
+                                    element.booleanOrNull != null -> element.boolean
+                                    element.intOrNull != null -> element.int
+                                    element.longOrNull != null -> element.long
+                                    element.floatOrNull != null -> element.float
+                                    else -> element.content
+                                }
+                                else -> null
+                            }
+                        }
 
                         newConfig().import(map)
                     }

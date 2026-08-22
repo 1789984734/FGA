@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.ben.manes.versions)
+    alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.ksp) apply false
 }
@@ -15,7 +16,7 @@ subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
-            jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
 }

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -11,8 +12,8 @@ android {
     ndkVersion = "21.3.6528147"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {
@@ -22,6 +23,15 @@ android {
 
     androidResources {
         generateLocaleConfig = true
+    }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols.add("**/libopencv_java*.so")
+            keepDebugSymbols.add("**/libandroidx.graphics.path.so")
+            keepDebugSymbols.add("**/libc++_shared.so")
+            keepDebugSymbols.add("**/libmlkit_google_ocr_pipeline.so")
+        }
     }
 
     defaultConfig {
@@ -112,7 +122,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
 
 
-    implementation(libs.google.gson)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)

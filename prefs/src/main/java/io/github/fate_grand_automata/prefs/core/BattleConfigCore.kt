@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.fredporciuncula.flow.preferences.Serializer
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import io.github.fate_grand_automata.prefs.import
 import io.github.fate_grand_automata.scripts.enums.BraveChainEnum
 import io.github.fate_grand_automata.scripts.enums.GameServer
@@ -111,7 +111,7 @@ class BattleConfigCore(
         default = ServantPriorityPerWave.default
     )
 
-    private val gson = Gson()
+    private val json = Json { ignoreUnknownKeys = true }
     private val defaultSpamConfig = (1..6).map { ServantSpamConfig() }
 
     val spam = maker.serialized(
@@ -119,15 +119,15 @@ class BattleConfigCore(
         serializer = object : Serializer<List<ServantSpamConfig>> {
             override fun deserialize(serialized: String) =
                 try {
-                    gson
-                        .fromJson(serialized, Array<ServantSpamConfig>::class.java)
-                        ?.toList() ?: defaultSpamConfig
-                } catch (e: JsonSyntaxException) {
+                    json.decodeFromString<List<ServantSpamConfig>>(serialized)
+                } catch (e: SerializationException) {
+                    defaultSpamConfig
+                } catch (e: IllegalArgumentException) {
                     defaultSpamConfig
                 }
 
             override fun serialize(value: List<ServantSpamConfig>) =
-                gson.toJson(value)
+                json.encodeToString(value)
         },
         defaultSpamConfig
     )

@@ -1,14 +1,15 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     compileSdk = 37
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     defaultConfig {
@@ -29,7 +30,7 @@ dependencies {
     implementation(project(":scripts"))
     implementation(libs.androidx.core.ktx)
 
-    implementation(libs.google.gson)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)

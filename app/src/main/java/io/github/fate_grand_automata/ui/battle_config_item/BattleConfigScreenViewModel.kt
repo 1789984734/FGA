@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
-import com.google.gson.Gson
+import kotlinx.serialization.json.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.BattleConfigCore
@@ -56,10 +56,20 @@ class BattleConfigScreenViewModel @Inject constructor(
 
     private fun export(stream: OutputStream) {
         val values = battleConfig.export()
-        val gson = Gson()
-        val json = gson.toJson(values)
+        val jsonObject = buildJsonObject {
+            for ((key, value) in values) {
+                when (value) {
+                    is String -> put(key, value)
+                    is Number -> put(key, JsonPrimitive(value))
+                    is Boolean -> put(key, value)
+                    is Set<*> -> putJsonArray(key) { value.forEach { add(it.toString()) } }
+                    null -> put(key, JsonNull)
+                    else -> put(key, value.toString())
+                }
+            }
+        }
 
-        stream.writer().use { it.write(json) }
+        stream.writer().use { it.write(jsonObject.toString()) }
     }
 
     fun export(context: Context, uri: Uri?) {
