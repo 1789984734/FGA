@@ -22,7 +22,7 @@ Once you're ready:
 4. You can create a new branch by using the following commands: `git checkout -b issue-name`.
 5. If you want to debug your app, you should set the [versionCode](https://github.com/Fate-Grand-Automata/FGA/blob/ba8d04edc7c6a13b9c519cd102566574c00f2506/app/build.gradle#L38) to the value of your currently installed FGA version. The default value is 1 and Android does not allow downgrading apps to older versions.
 
-  
+
 
 Project Structure:
 
