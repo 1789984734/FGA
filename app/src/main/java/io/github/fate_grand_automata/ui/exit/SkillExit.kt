@@ -123,7 +123,7 @@ private fun AutoSkillUpgrade.ExitException.reasonText(): String = when (val reas
     is AutoSkillUpgrade.ExitReason.Unexpected -> {
         val error = reason.e
         if (error is KnownException) {
-            error.reason.msg
+            stringResource(error.reason.resId, *error.reason.args)
         } else {
             "${stringResource(R.string.unexpected_error)}: ${error.message.orEmpty()}"
         }
