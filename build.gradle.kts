@@ -13,6 +13,16 @@ plugins {
 }
 
 subprojects {
+    // Compile every module with JDK 21, whichever JVM happens to launch Gradle.
+    // Bytecode targets 21 - see jvmTarget below and each module's compileOptions.
+    pluginManager.withPlugin("java-base") {
+        extensions.configure<JavaPluginExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        }
+    }
+
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
