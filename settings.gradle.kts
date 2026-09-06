@@ -1,6 +1,16 @@
 pluginManagement {
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("androidx\\..*")
+                includeGroupByRegex("com\\.android(\\..*|)")
+                includeGroupByRegex("com\\.google\\.android\\..*")
+                includeGroupByRegex("com\\.google\\.testing\\.platform")
+            }
+            mavenContent {
+                releasesOnly()
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -13,16 +23,33 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("androidx\\..*")
+                includeGroupByRegex("com\\.android(\\..*|)")
+                includeGroupByRegex("com\\.google\\.android\\..*")
+                includeGroupByRegex("com\\.google\\.firebase(\\..*|)")
+                includeGroupByRegex("com\\.google\\.mlkit(\\..*|)")
+                includeGroupByRegex("com\\.google\\.testing\\.platform")
+            }
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        // fallback for the rest of the dependencies
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
+        // tesseract4android is published nowhere else
+        maven("https://jitpack.io") {
+            content {
+                includeGroup("cz.adaptech.tesseract4android")
+            }
+        }
     }
 }
-
-rootProject.name = "Fate Grand Automata"
 
 include(":prefs")
 include(":scripts")
 include(":libautomata")
 include(":app")
+
+rootProject.name="Fate Grand Automata"

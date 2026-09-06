@@ -8,7 +8,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import io.github.fate_grand_automata.scripts.enums.GameServer
+import io.github.fate_grand_automata.scripts.enums.GameServers
 import timber.log.Timber
 
 class TapperService : AccessibilityService() {
@@ -40,7 +40,7 @@ class TapperService : AccessibilityService() {
 
         // We only want events from FGO
         serviceInfo = serviceInfo.apply {
-            packageNames = GameServer.packageNames.keys.toTypedArray()
+            packageNames = GameServers.packageNames.keys.toTypedArray()
         }
 
         instance = this
@@ -100,7 +100,7 @@ class TapperService : AccessibilityService() {
         }
     }
 
-    var detectedFgoServer = GameServer.default
+    var detectedFgoServer = GameServers.default
         private set
 
     /**
@@ -115,7 +115,7 @@ class TapperService : AccessibilityService() {
                 val foregroundAppName = event.packageName?.toString()
                     ?: return
 
-                GameServer.fromPackageName(foregroundAppName)?.let { server ->
+                GameServers.fromPackageName(foregroundAppName)?.let { server ->
                     Timber.d("Detected FGO: $server")
 
                     detectedFgoServer = server

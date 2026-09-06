@@ -14,7 +14,8 @@ dependencies {
     api(project(":libautomata"))
 
     implementation(libs.kotlin.stdlib)
-    implementation(libs.kotlinx.serialization.json)
+    // api: the @Serializable models are part of this module's public surface
+    api(libs.kotlinx.serialization.core)
 
     implementation(libs.dagger.hilt.core)
     ksp(libs.dagger.hilt.compiler)
@@ -36,26 +37,26 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Unit tests run on the Gradle toolchain JVM (21) and never reach Android, so they may target a
-// newer bytecode level than the library itself, which stays at 11 for `app`. JUnit >= 6 ships
-// Java 17 bytecode, and Gradle's variant resolution rejects it against a Java 11 test compilation.
+// Unit tests run on the Gradle toolchain JVM (21) and never reach Android. JUnit >= 6 ships
+// Java 17 bytecode, which requires the test compilation to target at least 17; 21 matches the
+// toolchain and libautomata's bytecode so variant resolution succeeds.
 tasks.compileTestKotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
 // Kotlin refuses to compile when the paired Java task disagrees, even with no Java test sources.
 tasks.compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_17.toString()
-    targetCompatibility = JavaVersion.VERSION_17.toString()
-    options.release.set(17)
+    sourceCompatibility = JavaVersion.VERSION_21.toString()
+    targetCompatibility = JavaVersion.VERSION_21.toString()
+    options.release.set(21)
 }
 
 listOf(configurations.testCompileClasspath, configurations.testRuntimeClasspath).forEach { config ->
     config.configure {
         attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 21)
         }
     }
 }

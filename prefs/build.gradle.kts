@@ -23,6 +23,9 @@ android {
             initWith(getByName("release"))
         }
     }
+    // run tests in CI builds instad of debug
+    testBuildType = "ci"
+
     namespace = "io.github.fate_grand_automata.prefs"
 }
 
@@ -36,4 +39,14 @@ dependencies {
     ksp(libs.dagger.hilt.compiler)
 
     api(libs.fredporciuncula.flow.preferences)
+
+    testImplementation(platform(libs.junit.bom)) {
+        because("kotlin-test comes with conflicting junit versions")
+    }
+    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.willowtreeapps.assertk)
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

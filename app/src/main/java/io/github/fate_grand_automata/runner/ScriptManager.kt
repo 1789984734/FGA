@@ -1,8 +1,8 @@
 package io.github.fate_grand_automata.runner
 
-import android.annotation.SuppressLint
 import android.app.Service
 import android.content.ClipboardManager
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.widget.Toast
@@ -24,7 +24,7 @@ import io.github.fate_grand_automata.scripts.entrypoints.AutoServantLevel
 import io.github.fate_grand_automata.scripts.entrypoints.AutoSkillUpgrade
 import io.github.fate_grand_automata.scripts.entrypoints.AutoSoundPlayer
 import io.github.fate_grand_automata.scripts.entrypoints.SupportImageMaker
-import io.github.fate_grand_automata.scripts.enums.GameServer
+import io.github.fate_grand_automata.scripts.enums.GameServers
 import io.github.fate_grand_automata.scripts.enums.ScriptModeEnum
 import io.github.fate_grand_automata.scripts.prefs.IPreferences
 import io.github.fate_grand_automata.ui.exit.BattleExit
@@ -62,7 +62,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @ServiceScoped
 class ScriptManager @Inject constructor(
     private val service: Service,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val imageLoader: ImageLoader,
     private val preferences: IPreferences,
     private val prefsCore: PrefsCore,
@@ -71,7 +71,7 @@ class ScriptManager @Inject constructor(
     private val uiStateHolder: ScriptRunnerUIStateHolder,
     private val clipboardManager: ClipboardManager,
     private val messageBox: ScriptRunnerMessageBox,
-    @ServiceCoroutineScope private val scope: CoroutineScope,
+    @param:ServiceCoroutineScope private val scope: CoroutineScope,
     private val launcherResponseHandler: ScriptLauncherResponseHandler
 ) {
     var scriptState: ScriptState = ScriptState.Stopped
@@ -214,7 +214,7 @@ class ScriptManager @Inject constructor(
                 // A little bit of delay so the exit message can be recorded
                 launch {
                     try {
-                        delay(500)
+                        delay(500.milliseconds)
                         withContext(Dispatchers.Main) {
                             recording.close()
                         }
@@ -425,17 +425,17 @@ class ScriptManager @Inject constructor(
 
         preferences.gameServer =
             if (server == PrefsCore.GAME_SERVER_AUTO_DETECT)
-                (TapperService.instance?.detectedFgoServer ?: GameServer.default).also {
+                (TapperService.instance?.detectedFgoServer ?: GameServers.default).also {
                     Timber.d("Using auto-detected Game Server: $it")
                 }
             else try {
-                GameServer.deserialize(server)?.also {
+                GameServers.deserialize(server)?.also {
                     Timber.d("Using Game Server: $it")
-                } ?: GameServer.default
+                } ?: GameServers.default
             } catch (e: Exception) {
                 Timber.e(e, "Game Server: Falling back to NA")
 
-                GameServer.default
+                GameServers.default
             }
     }
 
@@ -490,7 +490,7 @@ class ScriptManager @Inject constructor(
             launcherResponseHandler.handle(resp)
 
             if (resp !is ScriptLauncherResponse.Cancel) {
-                delay(500)
+                delay(500.milliseconds)
                 runEntryPoint(
                     screenshotService = screenshotService,
                     entryPointProvider = { getEntryPoint(hiltEntryPoint) }

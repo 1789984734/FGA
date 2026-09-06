@@ -6,12 +6,13 @@ import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.serialization.json.*
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.fate_grand_automata.R
+import io.github.fate_grand_automata.prefs.BattleConfigFile
 import io.github.fate_grand_automata.prefs.core.BattleConfigCore
 import io.github.fate_grand_automata.prefs.core.PrefsCore
-import io.github.fate_grand_automata.scripts.enums.GameServer
+import io.github.fate_grand_automata.scripts.enums.GameServers
 import io.github.fate_grand_automata.scripts.prefs.IBattleConfig
 import io.github.fate_grand_automata.scripts.prefs.IPreferences
 import io.github.fate_grand_automata.util.toggle
@@ -40,7 +41,7 @@ class BattleConfigListViewModel @Inject constructor(
                     compareBy<BattleConfigCore, Int?>((nullsFirst())) {
                         // sort by null, NA, JP, CN, TW, KR
                         it.server.get().asGameServer()?.let { server ->
-                            GameServer.values.indexOf(server)
+                            GameServers.values.indexOf(server)
                         }
                     }.thenBy(String.CASE_INSENSITIVE_ORDER) {
                         it.name.get()
@@ -94,26 +95,14 @@ class BattleConfigListViewModel @Inject constructor(
             val configs = configsToExport()
 
             configs.forEach { battleConfig ->
-                val values = battleConfig.export()
-                val jsonObject = buildJsonObject {
-                    for ((key, value) in values) {
-                        when (value) {
-                            is String -> put(key, value)
-                            is Number -> put(key, JsonPrimitive(value))
-                            is Boolean -> put(key, value)
-                            is Set<*> -> putJsonArray(key) { value.forEach { add(it.toString()) } }
-                            null -> put(key, JsonNull)
-                            else -> put(key, value.toString())
-                        }
-                    }
-                }
+                val json = BattleConfigFile.encode(battleConfig.export())
 
                 try {
                     dir?.createFile("*/*", "${battleConfig.name}.fga")
                         ?.uri
                         ?.let { uri ->
                             resolver.openOutputStream(uri)?.use { outStream ->
-                                outStream.writer().use { it.write(jsonObject.toString()) }
+                                outStream.writer().use { it.write(json) }
                             }
                         }
                 } catch (e: Exception) {
@@ -145,30 +134,14 @@ class BattleConfigListViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             uris.forEach { uri ->
                 try {
-                    val jsonText = context.contentResolver.openInputStream(uri)?.use { inStream ->
+                    val json = context.contentResolver.openInputStream(uri)?.use { inStream ->
                         inStream.use {
                             it.reader().readText()
                         }
                     }
 
-                    if (jsonText != null) {
-                        val jsonObject = Json.parseToJsonElement(jsonText).jsonObject
-                        val map = jsonObject.entries.associate { (key, element) ->
-                            key to when (element) {
-                                is JsonArray -> element.map { it.jsonPrimitive.content }.toSet()
-                                is JsonPrimitive -> when {
-                                    element.isString -> element.content
-                                    element.booleanOrNull != null -> element.boolean
-                                    element.intOrNull != null -> element.int
-                                    element.longOrNull != null -> element.long
-                                    element.floatOrNull != null -> element.float
-                                    else -> element.content
-                                }
-                                else -> null
-                            }
-                        }
-
-                        newConfig().import(map)
+                    if (json != null) {
+                        newConfig().import(BattleConfigFile.decode(json))
                     }
                 } catch (e: Exception) {
                     ++failed

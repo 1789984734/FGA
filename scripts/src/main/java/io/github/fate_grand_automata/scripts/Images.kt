@@ -104,4 +104,6 @@ enum class Images(val path: String) {
     SoundExecute("sound_execute.png"),
     SoundPlayer("sound_player.png"),
     SoundRequire("sound_require.png"),
+    CommandSpell("command_spell.png"),
+    Cancel("cancel.png"),
 }

@@ -1,10 +1,17 @@
 *.iml
 .gradle
+.kotlin
+build
+
 /local.properties
 /.idea/
 .DS_Store
-/build
 /captures
 .externalNativeBuild
 .cxx
 custom-game-area/image.jpg
+
+# Play Store deploy credentials - holds a service account private key
+fastlane/serviceaccount.json
+fastlane/report.xml
+/crash/
