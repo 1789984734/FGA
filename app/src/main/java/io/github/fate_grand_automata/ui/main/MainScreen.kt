@@ -158,7 +158,7 @@ fun MainScreen(
         accessibilityServiceStarted = accessibilityServiceStarted,
         toggleAccessibilityService = {
             if (accessibilityServiceStarted) {
-                TapperService.instance?.disableSelf()
+                TapperService.disableByUser()
             } else {
                 navigate(MainScreenDestinations.AccessibilitySettings)
             }
