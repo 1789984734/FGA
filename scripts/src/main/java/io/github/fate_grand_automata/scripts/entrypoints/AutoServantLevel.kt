@@ -284,14 +284,29 @@ class AutoServantLevel @Inject constructor(
         throw ServantUpgradeException(ExitReason.UnableToPerformGrail)
     }
 
+    /**
+     * This function handles the Palingenesis result screen.
+     *
+     * The result screen offers a button that goes straight back to the ember selection
+     * screen, which is where the enhancement loop has to resume. Fall back to the plain
+     * "return to enhancement" button in the top-left corner if that one doesn't work.
+     */
     private fun handleCompletedGrail() {
         repeat(3) {
+            locations.servant.returnToEnhancementFromGrailLocation.click()
+            if (waitUntilServantMenuVisible()) {
+                grailConfirmationAccepted = false
+                isInGrail = false
+                return
+            }
+
             locations.servant.returnToServantMenuFromGrailLocation.click()
             if (waitUntilServantMenuVisible()) {
                 grailConfirmationAccepted = false
                 isInGrail = false
                 return
             }
+
             locations.enhancementSkipRapidClick.click(5)
         }
 

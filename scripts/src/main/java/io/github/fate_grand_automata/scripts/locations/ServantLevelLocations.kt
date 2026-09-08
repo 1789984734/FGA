@@ -69,6 +69,17 @@ class ServantLevelLocations @Inject constructor(
 
     val returnToServantMenuFromAscensionLocation = Location(816, 572).xFromCenter()
 
+    /**
+     * The Palingenesis result screen offers a "go to servant enhancement" button on the
+     * right-hand side. It leads back to the ember selection screen, where leveling can
+     * continue, so it sits at the same spot as the ascension return button.
+     */
+    val returnToEnhancementFromGrailLocation = Location(816, 572).xFromCenter()
+
+    /**
+     * "Return to enhancement" button in the top-left corner of the Palingenesis result
+     * screen. Used as a fallback when the button above doesn't lead back to the menu.
+     */
     val returnToServantMenuFromGrailLocation = Location(180, 80)
 
     val ascensionReturnToLevelRegion = when(isWide){
