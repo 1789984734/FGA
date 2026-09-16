@@ -3,7 +3,7 @@ name: Publish wiki
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'wiki/**'
       - '.github/workflows/publish-wiki.yml'
