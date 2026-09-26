@@ -537,6 +537,7 @@
 <string name="skill_upgrade_number">"技能%1$d"</string>
 <string name="skill_upgrade_level_change">"等级 %1$d → %2$d"</string>
 <string name="skill_upgrade_materials_insufficient">"材料不足，已跳过此技能"</string>
+    <string name="skill_upgrade_resource_insufficient">"QP或材料不足，已跳过此技能"</string>
 <string name="skill_upgrade_target_reached">"已达到目标等级"</string>
 <string name="skill_upgrade_not_processed_qp">"因QP不足而未处理"</string>
 <string name="skill_upgrade_unavailable">"不可用"</string>

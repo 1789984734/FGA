@@ -5,6 +5,7 @@ import io.github.fate_grand_automata.scripts.Images
 import io.github.fate_grand_automata.scripts.enums.ScriptModeEnum
 import io.github.lib_automata.dagger.ScriptScope
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @ScriptScope
 class AutoDetect @Inject constructor(
@@ -77,11 +78,19 @@ class AutoDetect @Inject constructor(
         }
     }
 
-    private fun isSkillEnhancementPage() =
-        locations.enhancementBannerRegion
-            .exists(images[Images.SkillMenuBanner], similarity = 0.72) &&
-            (1..3).any { skillNumber ->
+    private fun isSkillEnhancementPage(): Boolean {
+        if (!locations.enhancementBannerRegion.exists(images[Images.SkillMenuBanner], similarity = 0.72)) {
+            return false
+        }
+
+        // The cyan selection frame pulses in the CN client, so a single frame can miss it.
+        return (1..3).any {
+            val selected = (1..3).any { skillNumber ->
                 locations.skill.selectedIndicatorRegion(skillNumber)
-                    .exists(images[Images.SkillSelected], similarity = 0.85)
+                    .exists(images[Images.SkillSelected], similarity = 0.8)
             }
+            if (!selected) 300.milliseconds.wait()
+            selected
+        }
+    }
 }

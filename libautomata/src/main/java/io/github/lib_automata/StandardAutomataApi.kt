@@ -79,10 +79,14 @@ class StandardAutomataApi @Inject constructor(
     override fun Region.detectDigits(): String {
         screenshotManager.getScreenshot()
             .crop(transform.toImage(this))
-            .threshold(0.5)
             .also { highlight(this, HighlightColor.Info) }
-            .use {
-                return ocrService.detectDigits(it)
+            .use { raw ->
+                // ML Kit reads most grayscale crops well, but low-contrast digits on gradient
+                // backgrounds come back empty; the thresholded copy covers those. Neither image
+                // is reliable alone.
+                ocrService.detectDigits(raw).let { if (it.isNotBlank()) return it }
+
+                return raw.copy().threshold(0.5).use { ocrService.detectDigits(it) }
             }
     }
 

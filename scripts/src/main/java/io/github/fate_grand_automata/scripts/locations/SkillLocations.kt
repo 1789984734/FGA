@@ -12,8 +12,9 @@ class SkillLocations @Inject constructor(
         Location(-339 + SKILL_SPACING * (skillNumber - 1), 519).xFromCenter()
 
     fun skillLevelRegion(skillNumber: Int) =
-        // Includes `current/10`. Digit OCR preserves `/`, and the parser takes the first number.
-        Region(-120 + SKILL_SPACING * (skillNumber - 1), if (isWide) 545 else 585, 150, 56)
+        // Only the `current/10` digits. Including the `等级`/`Lv.` prefix makes ML Kit emit CJK
+        // garbage (e.g. '及1M0'), and the parser requires the `/10` suffix.
+        Region(-90 + SKILL_SPACING * (skillNumber - 1), if (isWide) 545 else 585, 130, 60)
             .xFromCenter()
 
     /** A narrow slice of the cyan selection frame, excluding the skill icon itself. */
@@ -31,26 +32,7 @@ class SkillLocations @Inject constructor(
         false -> Region(-520, 218, 760, 65).xFromCenter()
     }
 
-    fun materialRequiredRegion(slot: Int) = Region(
-        -280 + MATERIAL_SPACING * (slot - 1),
-        if (isWide) 1035 else 1075,
-        110,
-        50
-    ).xFromCenter()
-
-    fun materialOwnedRegion(slot: Int) = Region(
-        -365 + MATERIAL_SPACING * (slot - 1),
-        if (isWide) 1085 else 1125,
-        195,
-        55
-    ).xFromCenter()
-
-    val qpRequiredRegion = Region(180, if (isWide) 1225 else 1265, 380, 65).xFromCenter()
-
-    val qpOwnedRegion = Region(60, if (isWide) 1305 else 1345, 510, 70).xFromCenter()
-
     private companion object {
         const val SKILL_SPACING = 576
-        const val MATERIAL_SPACING = 360
     }
 }

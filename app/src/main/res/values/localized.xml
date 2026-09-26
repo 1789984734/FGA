@@ -609,6 +609,7 @@ After pressing on the button, switch the app filter from \"Not optimized\" to \"
 <string name="skill_upgrade_number">"Skill %1$d"</string>
 <string name="skill_upgrade_level_change">"Level %1$d → %2$d"</string>
 <string name="skill_upgrade_materials_insufficient">"Insufficient materials; skipped this skill"</string>
+    <string name="skill_upgrade_resource_insufficient">"Insufficient QP or materials; skipped this skill"</string>
 <string name="skill_upgrade_target_reached">"Target level reached"</string>
 <string name="skill_upgrade_not_processed_qp">"Not processed because QP ran out"</string>
 <string name="skill_upgrade_unavailable">"Unavailable"</string>

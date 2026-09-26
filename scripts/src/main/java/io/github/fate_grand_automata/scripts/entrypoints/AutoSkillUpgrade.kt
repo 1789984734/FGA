@@ -36,6 +36,7 @@ class AutoSkillUpgrade @Inject constructor(
         TargetLevelMet,
         OutOfMaterials,
         OutOfQP,
+        ResourceInsufficient,
         SkippedAfterOutOfQP,
         OcrFailed,
         PageRecognitionFailed,
@@ -75,14 +76,12 @@ class AutoSkillUpgrade @Inject constructor(
         fun snapshot() = Summary(skillNumber, startingLevel, endLevel, targetLevel, result)
     }
 
-    private sealed class ResourceCheck {
-        data object Ready : ResourceCheck()
-        data object OutOfMaterials : ResourceCheck()
-        data object OutOfQP : ResourceCheck()
-        data object OcrFailed : ResourceCheck()
+    private enum class EnhanceAttempt {
+        Ready,
+        OutOfMaterials,
+        OutOfQP,
+        NoResponse,
     }
-
-    private data class Cost(val required: Long?, val owned: Long?)
 
     private val summaries
         get() = mutableSummaries.map(MutableSummary::snapshot)
@@ -112,7 +111,8 @@ class AutoSkillUpgrade @Inject constructor(
             summary.result = result
 
             when (result) {
-                EnhancementExitReason.OutOfMaterials -> Unit
+                EnhancementExitReason.OutOfMaterials,
+                EnhancementExitReason.ResourceInsufficient -> Unit
 
                 EnhancementExitReason.OutOfQP -> {
                     mutableSummaries
@@ -161,22 +161,18 @@ class AutoSkillUpgrade @Inject constructor(
             if (skillDeadline.hasPassedNow() || confirmedUpgrades >= MAX_UPGRADES_PER_SKILL) {
                 return EnhancementExitReason.NoProgress
             }
-            if (!isSkillPage() || !isSkillSelected(summary.skillNumber)) {
+            if (!verifySkillPage(summary.skillNumber)) {
                 return EnhancementExitReason.PageRecognitionFailed
             }
 
-            when (checkResources()) {
-                ResourceCheck.OutOfMaterials -> return EnhancementExitReason.OutOfMaterials
-                ResourceCheck.OutOfQP -> return EnhancementExitReason.OutOfQP
-                ResourceCheck.OcrFailed -> return EnhancementExitReason.OcrFailed
-                ResourceCheck.Ready -> Unit
-            }
-
             when (openAndConfirmEnhancement()) {
-                ResourceCheck.OutOfMaterials -> return EnhancementExitReason.OutOfMaterials
-                ResourceCheck.OutOfQP -> return EnhancementExitReason.OutOfQP
-                ResourceCheck.OcrFailed -> return EnhancementExitReason.NoProgress
-                ResourceCheck.Ready -> Unit
+                EnhanceAttempt.OutOfMaterials -> return EnhancementExitReason.OutOfMaterials
+                EnhanceAttempt.OutOfQP -> return EnhancementExitReason.OutOfQP
+                // The game disables Enhance without any dialog when QP or materials run out
+                // (also on ascension-capped skills), so a dead button means "not enough
+                // resources" — move on to the next skill.
+                EnhanceAttempt.NoResponse -> return EnhancementExitReason.ResourceInsufficient
+                EnhanceAttempt.Ready -> Unit
             }
 
             confirmedUpgrades++
@@ -208,13 +204,24 @@ class AutoSkillUpgrade @Inject constructor(
         return null
     }
 
+    /**
+     * Single screenshot glitches (projection frame drops, CN client pulsing the cyan selection
+     * frame) must not abort a run, so the page check gets a few retries.
+     */
+    private fun verifySkillPage(skillNumber: Int): Boolean =
+        (1..PAGE_CHECK_ATTEMPTS).any {
+            val ok = isSkillPage() && isSkillSelected(skillNumber)
+            if (!ok) PAGE_CHECK_WAIT.wait()
+            ok
+        }
+
     private fun readStableLevel(skillNumber: Int): Int? {
         var previous: Int? = null
 
         repeat(OCR_ATTEMPTS) {
-            val level = locations.skill.skillLevelRegion(skillNumber)
-                .findNumberInText()
-                ?.takeIf { it in MIN_SKILL_LEVEL..MAX_SKILL_LEVEL }
+            val level = parseSkillLevelText(
+                locations.skill.skillLevelRegion(skillNumber).detectDigits()
+            )
 
             if (level != null && level == previous) return level
             previous = level
@@ -224,115 +231,53 @@ class AutoSkillUpgrade @Inject constructor(
         return null
     }
 
-    private fun checkResources(): ResourceCheck {
-        val recognizedFailure = useSameSnapIn {
-            when {
-                isOutOfQP() -> ResourceCheck.OutOfQP
-                isOutOfMaterials() -> ResourceCheck.OutOfMaterials
-                else -> null
-            }
-        }
-        if (recognizedFailure != null) return recognizedFailure
-
-        val qpCost = readStableCost(
-            locations.skill.qpRequiredRegion,
-            locations.skill.qpOwnedRegion,
-            optional = false
-        ) ?: return ResourceCheck.OcrFailed
-
-        val requiredQP = qpCost.required ?: return ResourceCheck.OcrFailed
-        val ownedQP = qpCost.owned ?: return ResourceCheck.OcrFailed
-        if (ownedQP < requiredQP) return ResourceCheck.OutOfQP
-
-        for (slot in 1..MATERIAL_SLOTS) {
-            val cost = readStableCost(
-                locations.skill.materialRequiredRegion(slot),
-                locations.skill.materialOwnedRegion(slot),
-                optional = slot > 1
-            ) ?: return ResourceCheck.OcrFailed
-
-            if (cost.required == null && cost.owned == null) continue
-            val required = cost.required ?: return ResourceCheck.OcrFailed
-            val owned = cost.owned ?: return ResourceCheck.OcrFailed
-            if (owned < required) return ResourceCheck.OutOfMaterials
-        }
-
-        return ResourceCheck.Ready
-    }
-
-    private fun readStableCost(
-        requiredRegion: Region,
-        ownedRegion: Region,
-        optional: Boolean,
-    ): Cost? {
-        var previous: Cost? = null
-
-        repeat(OCR_ATTEMPTS) {
-            val cost = useSameSnapIn {
-                Cost(
-                    requiredRegion.findLongInText(),
-                    ownedRegion.findLongInText()
-                )
-            }
-
-            val isAbsent = cost.required == null && cost.owned == null
-            val isValid = cost.required?.let { required ->
-                cost.owned?.let { owned -> required > 0 && owned >= 0 }
-            } == true
-
-            if (cost == previous && (isValid || optional && isAbsent)) return cost
-            previous = cost
-            OCR_RETRY_WAIT.wait()
-        }
-
-        return null
-    }
-
     /**
-     * Clicks Enhance at most once for this level and confirms only a recognized dialog.
+     * Clicks Enhance and confirms only a recognized dialog. The game disables the button without
+     * any dialog when QP or materials are insufficient, so a click that produces no response is
+     * retried and then reported as [EnhanceAttempt.NoResponse].
      */
-    private fun openAndConfirmEnhancement(): ResourceCheck {
-        locations.enhancementClick.click()
-        val deadline = TimeSource.Monotonic.markNow() + CONFIRM_DIALOG_TIMEOUT
+    private fun openAndConfirmEnhancement(): EnhanceAttempt {
+        repeat(ENHANCE_CLICK_ATTEMPTS) {
+            locations.enhancementClick.click()
+            val deadline = TimeSource.Monotonic.markNow() + CONFIRM_DIALOG_TIMEOUT
 
-        while (!deadline.hasPassedNow()) {
-            if (connectionRetry.needsToRetry()) {
-                connectionRetry.retry()
-                continue
-            }
+            while (!deadline.hasPassedNow()) {
+                if (connectionRetry.needsToRetry()) {
+                    connectionRetry.retry()
+                    continue
+                }
 
-            val screen = useSameSnapIn {
-                findConfirmationButton()?.let { ConfirmScreen.Confirmation(it.region) }
-                    ?: findTemporaryServantButton()?.let { ConfirmScreen.TemporaryServant(it.region) }
-                    ?: when {
-                        isOutOfQP() -> ConfirmScreen.OutOfQP
-                        isOutOfMaterials() -> ConfirmScreen.OutOfMaterials
-                        else -> ConfirmScreen.Unknown
+                val screen = useSameSnapIn {
+                    findConfirmationButton()?.let { ConfirmScreen.Confirmation(it.region) }
+                        ?: findTemporaryServantButton()?.let { ConfirmScreen.TemporaryServant(it.region) }
+                        ?: when {
+                            isOutOfQP() -> ConfirmScreen.OutOfQP
+                            isOutOfMaterials() -> ConfirmScreen.OutOfMaterials
+                            else -> ConfirmScreen.Unknown
+                        }
+                }
+
+                when (screen) {
+                    is ConfirmScreen.Confirmation -> {
+                        screen.button.click()
+                        return EnhanceAttempt.Ready
                     }
-            }
 
-            when (screen) {
-                is ConfirmScreen.Confirmation -> {
-                    screen.button.click()
-                    return ResourceCheck.Ready
+                    is ConfirmScreen.TemporaryServant -> {
+                        screen.button.click()
+                        CONFIRM_RETRY_WAIT.wait()
+                    }
+
+                    ConfirmScreen.OutOfQP -> return EnhanceAttempt.OutOfQP
+                    ConfirmScreen.OutOfMaterials -> return EnhanceAttempt.OutOfMaterials
+                    ConfirmScreen.Unknown -> Unit
                 }
 
-                is ConfirmScreen.TemporaryServant -> {
-                    screen.button.click()
-                    CONFIRM_RETRY_WAIT.wait()
-                }
-
-                ConfirmScreen.OutOfQP -> return ResourceCheck.OutOfQP
-                ConfirmScreen.OutOfMaterials -> return ResourceCheck.OutOfMaterials
-                ConfirmScreen.Unknown -> Unit
+                CONFIRM_RETRY_WAIT.wait()
             }
-
-            CONFIRM_RETRY_WAIT.wait()
         }
 
-        // The button produced no recognized transition. Do not guess whether QP or materials caused
-        // it, because guessing "materials" could incorrectly continue after an OCR-missed QP stop.
-        return ResourceCheck.OcrFailed
+        return EnhanceAttempt.NoResponse
     }
 
     private fun waitForLevelIncrease(skillNumber: Int, previousLevel: Int): Int? {
@@ -350,7 +295,7 @@ class AutoSkillUpgrade @Inject constructor(
                 }
             }
 
-            locations.enhancementSkipRapidClick.click()
+            locations.enhancementSkipRapidClick.click(5)
             LEVEL_POLL_WAIT.wait()
         }
 
@@ -374,13 +319,13 @@ class AutoSkillUpgrade @Inject constructor(
     private fun isAnySkillSelected() = useSameSnapIn {
         (1..3).any { skillNumber ->
             locations.skill.selectedIndicatorRegion(skillNumber)
-                .exists(images[Images.SkillSelected], similarity = 0.85)
+                .exists(images[Images.SkillSelected], similarity = 0.8)
         }
     }
 
     private fun isSkillSelected(skillNumber: Int) =
         locations.skill.selectedIndicatorRegion(skillNumber)
-            .exists(images[Images.SkillSelected], similarity = 0.85)
+            .exists(images[Images.SkillSelected], similarity = 0.8)
 
     private fun isOutOfMaterials() =
         locations.skill.insufficientMaterialsRegion
@@ -404,19 +349,33 @@ class AutoSkillUpgrade @Inject constructor(
     }
 
     private companion object {
-        const val MIN_SKILL_LEVEL = 1
         const val MAX_SKILL_LEVEL = 10
-        const val MATERIAL_SLOTS = 2
         const val OCR_ATTEMPTS = 4
         const val SKILL_SELECTION_ATTEMPTS = 3
+        const val PAGE_CHECK_ATTEMPTS = 3
+        const val ENHANCE_CLICK_ATTEMPTS = 3
         const val MAX_UPGRADES_PER_SKILL = 9
 
         val OCR_RETRY_WAIT = 250.milliseconds
         val SELECTION_WAIT = 750.milliseconds
+        val PAGE_CHECK_WAIT = 300.milliseconds
         val CONFIRM_RETRY_WAIT = 400.milliseconds
         val LEVEL_POLL_WAIT = 500.milliseconds
-        val CONFIRM_DIALOG_TIMEOUT = 5.seconds
+        val CONFIRM_DIALOG_TIMEOUT = 2.seconds
         val LEVEL_CHANGE_TIMEOUT = 15.seconds
         val SKILL_TIMEOUT = 180.seconds
     }
 }
+
+private val SKILL_LEVEL_TEXT_REGEX = Regex("""(\d{1,2})/10""")
+
+/**
+ * The skill panel shows levels as `current/10` (CN: `等级 1/10`). Requiring the `/10` suffix
+ * stops digit-whitelisted OCR garbage (e.g. `及1M0` filtered down to "10") from being read as
+ * a maxed-out skill.
+ */
+internal fun parseSkillLevelText(ocrDigits: String): Int? =
+    SKILL_LEVEL_TEXT_REGEX.find(ocrDigits)
+        ?.groupValues?.get(1)
+        ?.toIntOrNull()
+        ?.takeIf { it in 1..10 }

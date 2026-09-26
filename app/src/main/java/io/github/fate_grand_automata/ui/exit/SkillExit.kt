@@ -179,6 +179,9 @@ private fun AutoSkillUpgrade.Summary.resultText(wasStoppedByUser: Boolean): Stri
         AutoSkillUpgrade.EnhancementExitReason.OutOfMaterials ->
             stringResource(R.string.skill_upgrade_materials_insufficient)
 
+        AutoSkillUpgrade.EnhancementExitReason.ResourceInsufficient ->
+            stringResource(R.string.skill_upgrade_resource_insufficient)
+
         AutoSkillUpgrade.EnhancementExitReason.OutOfQP ->
             stringResource(R.string.skill_upgrade_qp_insufficient)
 
