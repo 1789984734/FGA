@@ -26,7 +26,12 @@ class SupportImageExtractor(
         val assetFolder = kind.assetFolder
         val assets = context.assets
 
-        for (assetFileName in assets.list(assetFolder)!!) {
+        val assetFileNames = assets.list(assetFolder) ?: run {
+            Timber.w("Asset folder $assetFolder not found")
+            return
+        }
+
+        for (assetFileName in assetFileNames) {
             val assetPath = "${assetFolder}/$assetFileName"
             val subFiles = assets.list(assetPath) ?: emptyArray()
 
@@ -55,10 +60,10 @@ class SupportImageExtractor(
     }
 
     private fun copyAssetToFile(Assets: AssetManager, AssetPath: String, kind: SupportImageKind, fileName: String) {
-        // this should prevent
         val originalDigest = MessageDigest.getInstance("SHA-256")
         val copiedFileDigest = MessageDigest.getInstance("SHA-256")
-        do {
+
+        repeat(MAX_COPY_ATTEMPTS) { attempt ->
             originalDigest.reset()
             copiedFileDigest.reset()
 
@@ -69,11 +74,15 @@ class SupportImageExtractor(
                     assetStream.copyTo(outStream)
                 }
             }
-            if (!MessageDigest.isEqual(originalDigest.digest(), copiedFileDigest.digest())) {
-                Timber.w("Digests were not equal")
-            }
-        } while (!MessageDigest.isEqual(originalDigest.digest(), copiedFileDigest.digest()))
 
+            if (MessageDigest.isEqual(originalDigest.digest(), copiedFileDigest.digest())) {
+                return
+            }
+
+            Timber.w("Digests were not equal (attempt ${attempt + 1}/$MAX_COPY_ATTEMPTS)")
+        }
+
+        throw KnownException(KnownException.Reason.CouldNotOpenSupportFileForWriting(kind, fileName))
     }
 
     suspend fun extract() =
@@ -82,4 +91,8 @@ class SupportImageExtractor(
             extract(SupportImageKind.Servant)
             extract(SupportImageKind.CE)
         }
+
+    companion object {
+        private const val MAX_COPY_ATTEMPTS = 3
+    }
 }

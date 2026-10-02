@@ -94,27 +94,48 @@ class StorageProvider @Inject constructor(
 
     private val supportFolderName = "support"
 
+    private val SupportImageKind.folderName
+        get() = when (this) {
+            SupportImageKind.Servant -> "servant"
+            SupportImageKind.CE -> "ce"
+            SupportImageKind.Friend -> "friend"
+        }
+
+    /**
+     * Resolved SAF folder handles. Every [DocumentFile.findFile]/createDirectory call is a
+     * provider IPC, so the support folder tree is resolved once and cached until [dirRoot]
+     * changes (the handles belong to that tree).
+     */
+    private class SupportFolders(
+        val dirRoot: DocumentFile?,
+        val imageFolder: DocumentFile,
+        val perKind: Map<SupportImageKind, DocumentFile>
+    )
+
+    private var supportFolders: SupportFolders? = null
+
+    private fun supportFolders(): SupportFolders {
+        val root = dirRoot
+
+        supportFolders?.takeIf { it.dirRoot === root }?.let { return it }
+
+        val imageFolder = root.getOrCreateDir(supportFolderName)
+
+        return SupportFolders(
+            root,
+            imageFolder,
+            SupportImageKind.entries.associateWith { kind ->
+                imageFolder.getOrCreateDir(kind.folderName)
+            }
+        ).also { supportFolders = it }
+    }
+
     val shouldExtractSupportImages
-        get() = dirRoot?.findFile(supportFolderName) == null
-
-    private val supportImageFolder
-        get() = dirRoot.getOrCreateDir(supportFolderName)
-
-    private val supportServantFolder
-        get() = supportImageFolder.getOrCreateDir("servant")
-
-    private val supportCEFolder
-        get() = supportImageFolder.getOrCreateDir("ce")
-
-    private val supportFriendFolder
-        get() = supportImageFolder.getOrCreateDir("friend")
+        get() = supportFolders?.takeIf { it.dirRoot === dirRoot } == null
+                && dirRoot?.findFile(supportFolderName) == null
 
     private val SupportImageKind.imageFolder
-        get() = when (this) {
-            SupportImageKind.Servant -> supportServantFolder
-            SupportImageKind.CE -> supportCEFolder
-            SupportImageKind.Friend -> supportFriendFolder
-        }
+        get() = supportFolders().perKind.getValue(this)
 
     override fun writeSupportImage(kind: SupportImageKind, name: String): OutputStream {
         val folder = kind.imageFolder
@@ -218,6 +239,6 @@ class StorageProvider @Inject constructor(
     }
 
     override fun createNoMediaFile() {
-        supportImageFolder.getOrCreateFile(".nomedia")
+        supportFolders().imageFolder.getOrCreateFile(".nomedia")
     }
 }

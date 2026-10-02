@@ -99,7 +99,10 @@ class RealImageMatcher @Inject constructor(
         condition: () -> Boolean,
         timeout: Duration = Duration.ZERO
     ): Boolean {
-        //TODO throw exception if useSameSnapIn is active and timeout > 0
+        // A timeout would be spent re-checking the same cached screenshot over and over
+        require(!timeout.isPositive() || !screenshotManager.usePreviousSnap) {
+            "exists/waitVanish with a timeout is not allowed inside useSameSnapIn"
+        }
 
         val endTimeMark = TimeSource.Monotonic.markNow() + timeout
 

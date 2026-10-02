@@ -11,10 +11,12 @@ import io.github.fate_grand_automata.util.KnownException
 import io.github.fate_grand_automata.util.StorageProvider
 import io.github.lib_automata.ColorManager
 import io.github.lib_automata.Pattern
+import io.github.lib_automata.Region
 import io.github.lib_automata.ScreenshotService
 import io.github.lib_automata.Size
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.Rect
 import org.opencv.imgproc.Imgproc
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -87,7 +89,7 @@ class MediaProjectionScreenshotService(
         0, imageReader.surface, null, null
     )
 
-    override fun takeScreenshot(): Pattern = synchronized(lock) {
+    override fun takeScreenshot(region: Region?): Pattern = synchronized(lock) {
         /*
          * The projection can stop at any moment: the system revokes it, another app takes it
          * over, or the display changes underneath us. [close] releases the Mats when that
@@ -101,14 +103,34 @@ class MediaProjectionScreenshotService(
 
         screenshotIntoBuffer()
 
-        if (colorManager.isColor) {
-            Imgproc.cvtColor(bufferMat, colorMat, Imgproc.COLOR_RGBA2BGR)
-
-            colorPattern
+        /*
+         * [bufferMat] keeps the full RGBA frame so an unchanged screen can reuse the previous
+         * frame, but the colour conversion only runs on [region]: a submat header shares the
+         * pixels, so cropping here is free while cvtColor does half the work or less.
+         */
+        val source = if (region == null) {
+            bufferMat
         } else {
-            Imgproc.cvtColor(bufferMat, grayscaleMat, Imgproc.COLOR_RGBA2GRAY)
+            val clipped = Region(0, 0, bufferMat.width(), bufferMat.height()).clip(region)
 
-            grayscalePattern
+            Mat(bufferMat, Rect(clipped.x, clipped.y, clipped.width, clipped.height))
+        }
+
+        try {
+            if (colorManager.isColor) {
+                Imgproc.cvtColor(source, colorMat, Imgproc.COLOR_RGBA2BGR)
+
+                colorPattern
+            } else {
+                Imgproc.cvtColor(source, grayscaleMat, Imgproc.COLOR_RGBA2GRAY)
+
+                grayscalePattern
+            }
+        } finally {
+            // Only the submat header; [bufferMat] owns the pixels and is released in [close].
+            if (source !== bufferMat) {
+                source.release()
+            }
         }
     }
 

@@ -25,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +42,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.BattleConfigCore
 import io.github.fate_grand_automata.scripts.enums.SpamEnum
@@ -287,7 +287,7 @@ private fun BattleConfigContent(
 
                             HorizontalDivider()
 
-                            val cardPriority by vm.cardPriority.collectAsState(null)
+                            val cardPriority by vm.cardPriority.collectAsStateWithLifecycle(null)
 
                             cardPriority?.let {
                                 Preference(
@@ -301,7 +301,7 @@ private fun BattleConfigContent(
                 }
 
                 item {
-                    val maxSkillText by vm.maxSkillText.collectAsState("")
+                    val maxSkillText by vm.maxSkillText.collectAsStateWithLifecycle("")
 
                     SupportGroup(
                         config = config.support,

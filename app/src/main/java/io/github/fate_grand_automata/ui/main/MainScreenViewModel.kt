@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.PrefsCore
@@ -13,7 +14,6 @@ import io.github.fate_grand_automata.runner.ScriptRunnerService
 import io.github.fate_grand_automata.scripts.enums.GameServers
 import io.github.fate_grand_automata.scripts.prefs.IPreferences
 import io.github.fate_grand_automata.util.StorageProvider
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -29,7 +29,7 @@ class MainScreenViewModel @Inject constructor(
 
     init {
         // init the perServerConfigs
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             GameServers.values.filterNot {
                 it.betterFgo
             }.forEach { server ->

@@ -18,12 +18,12 @@ class ScreenshotManager @Inject constructor(
     private var previousPattern: Pattern? = null
 
     /**
-     * Takes a screenshot, crops it to the game area and then scales it to the image scale so
-     * it can be used for image comparisons.
+     * Takes a screenshot, cropped to the game area and scaled to the image scale so
+     * it can be used for image comparisons. The crop is handed down to the service so the
+     * colour conversion only runs on the game area instead of the whole screen.
      */
     private fun getScaledScreenshot(): Pattern =
-        screenshotService.takeScreenshot()
-            .crop(gameAreaManager.gameArea * (scale.screenToImage ?: 1.0))
+        screenshotService.takeScreenshot(gameAreaManager.gameArea * (scale.screenToImage ?: 1.0))
 
     /**
      * Takes a screenshot and sets [usePreviousSnap] to `true`. All following [getScreenshot]
@@ -37,9 +37,8 @@ class ScreenshotManager @Inject constructor(
     }
 
     /**
-     * [getScaledScreenshot] crops, and a crop is a fresh native image that has to be released.
-     * Nothing hands the previous one back out - callers use it within the expression they got
-     * it from, and [AutomataApi.getPattern] clones it - so it can be dropped here.
+     * Nothing hands the previous screenshot back out - callers use it within the expression they
+     * got it from, and [AutomataApi.getPattern] clones it - so it can be dropped here.
      */
     private fun keepAsPrevious(pattern: Pattern): Pattern {
         previousPattern?.close()

@@ -30,6 +30,8 @@ class AutoGiftBox @Inject constructor(
     companion object {
         const val maxClickCount = 99
         const val maxNullStreak = 3
+
+        val goldStackCountRegex = Regex("""x ?(\d+)$""")
     }
 
     private data class IterationResult(
@@ -55,29 +57,34 @@ class AutoGiftBox @Inject constructor(
         val receiveSelectedClick = Location(1890 + xpOffsetX, 750)
         val receiveEnabledRegion = Region(1755 + xpOffsetX, 410, 290, 60)
         val receiveEnabledPattern = receiveEnabledRegion.getPattern()
-        do {
-            val picked = iteration(checkRegion, scrollEndRegion)
-            totalSelected += picked
 
-            if (picked.pickedStacks > 0) {
-                receiveSelectedClick.click()
-                while (true) {
-                    2.seconds.wait()
-                    if (connectionRetry.needsToRetry()) connectionRetry.retry() else break
-                }
-                receiveSelectedClick.click()
-            } else break
-        } while (
-            totalSelected.pickedGoldEmbers < prefs.maxGoldEmberTotalCount &&
-            receiveEnabledPattern in receiveEnabledRegion
-        )
+        try {
+            do {
+                val picked = iteration(checkRegion, scrollEndRegion)
+                totalSelected += picked
 
-        throw ExitException(
-            ExitReason.CannotSelectAnyMore(
-                totalSelected.pickedStacks,
-                totalSelected.pickedGoldEmbers
+                if (picked.pickedStacks > 0) {
+                    receiveSelectedClick.click()
+                    while (true) {
+                        2.seconds.wait()
+                        if (connectionRetry.needsToRetry()) connectionRetry.retry() else break
+                    }
+                    receiveSelectedClick.click()
+                } else break
+            } while (
+                totalSelected.pickedGoldEmbers < prefs.maxGoldEmberTotalCount &&
+                receiveEnabledPattern in receiveEnabledRegion
             )
-        )
+
+            throw ExitException(
+                ExitReason.CannotSelectAnyMore(
+                    totalSelected.pickedStacks,
+                    totalSelected.pickedGoldEmbers
+                )
+            )
+        } finally {
+            receiveEnabledPattern.close()
+        }
     }
 
     private fun iteration(
@@ -152,9 +159,8 @@ class AutoGiftBox @Inject constructor(
                         .replace("S", "5")
                         .replace("O", "0")
                         .lowercase()
-                    val regex = Regex("""x ?(\d+)$""")
                     // extract the count if it was found in the text
-                    val count = regex.find(text)?.groupValues?.getOrNull(1)?.toInt()
+                    val count = goldStackCountRegex.find(text)?.groupValues?.getOrNull(1)?.toInt()
 
                     if (count == null || count > prefs.maxGoldEmberStackSize) {
                         continue

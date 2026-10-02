@@ -5,9 +5,11 @@ import io.github.fate_grand_automata.imaging.DroidCvPattern
 import io.github.fate_grand_automata.util.readIntLE
 import io.github.lib_automata.ColorManager
 import io.github.lib_automata.Pattern
+import io.github.lib_automata.Region
 import io.github.lib_automata.ScreenshotService
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.Rect
 import org.opencv.imgproc.Imgproc
 import timber.log.Timber
 import java.io.DataInputStream
@@ -54,17 +56,35 @@ class RootScreenshotService(
         bufferMat?.put(0, 0, buffer)
     }
 
-    override fun takeScreenshot(): Pattern {
+    override fun takeScreenshot(region: Region?): Pattern {
         screenshotIntoBuffer()
 
-        return if (colorManager.isColor) {
-            Imgproc.cvtColor(bufferMat, colorMat, Imgproc.COLOR_RGBA2BGR)
-
-            colorPattern
+        // Crop before converting: the submat header shares the pixels, so this is free,
+        // while cvtColor then only runs on the region instead of the whole screen.
+        val source = if (region == null) {
+            bufferMat
         } else {
-            Imgproc.cvtColor(bufferMat, grayscaleMat, Imgproc.COLOR_RGBA2GRAY)
+            bufferMat?.let {
+                val clipped = Region(0, 0, it.width(), it.height()).clip(region)
 
-            grayscalePattern
+                Mat(it, Rect(clipped.x, clipped.y, clipped.width, clipped.height))
+            }
+        }
+
+        try {
+            return if (colorManager.isColor) {
+                Imgproc.cvtColor(source, colorMat, Imgproc.COLOR_RGBA2BGR)
+
+                colorPattern
+            } else {
+                Imgproc.cvtColor(source, grayscaleMat, Imgproc.COLOR_RGBA2GRAY)
+
+                grayscalePattern
+            }
+        } finally {
+            if (source !== bufferMat) {
+                source?.release()
+            }
         }
     }
 

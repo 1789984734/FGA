@@ -39,6 +39,7 @@
 
         <service
             android:name=".runner.ScriptRunnerService"
+            android:exported="false"
             android:foregroundServiceType="mediaProjection|specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Shows a Play button in front of apps in landscape mode so farming can be started while Fate/Grand Order is open."/>
@@ -78,7 +79,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".runner.ScriptRunnerNotification$NotificationReceiver" />
+        <receiver
+            android:name=".runner.ScriptRunnerNotification$NotificationReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -116,20 +116,16 @@ dependencies {
     implementation(project(":scripts"))
     implementation(project(":prefs"))
 
-
-    implementation(libs.kotlin.stdlib)
-
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
 
-    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.constraintlayout)
 
     implementation(libs.opencv)
     implementation(libs.mlkit.text.recognition.chinese)
 
-    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(libs.lifecycle.viewmodel.savedstate)
     implementation(libs.lifecycle.viewmodel.compose)
 
@@ -145,7 +141,8 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation(libs.compose.ui)
-    implementation(libs.compose.ui.tooling)
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.compose.material3.window.size)
@@ -159,9 +156,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
-
-
-    implementation(libs.accompanist.permissions)
 
     implementation(libs.google.android.play.update.ktx)
     implementation(libs.coil)

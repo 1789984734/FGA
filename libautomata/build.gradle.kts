@@ -5,7 +5,6 @@ plugins {
 }
 
 dependencies {
-//    implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation(libs.dagger.hilt.core)

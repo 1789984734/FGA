@@ -129,38 +129,90 @@ class AccessibilityGestures @Inject constructor(
     override fun click(location: Location, times: Int) = runBlocking {
         val swipePath = Path().moveTo(location)
 
-        val stroke = GestureDescription.StrokeDescription(
-            swipePath,
-            gesturePrefs.clickDelay.inWholeMilliseconds,
-            gesturePrefs.clickDuration.inWholeMilliseconds
-        )
-
         Timber.d("click $location x$times")
 
-        repeat(times) {
-            performGesture(stroke)
+        val clickDelay = gesturePrefs.clickDelay.inWholeMilliseconds
+        val clickDuration = gesturePrefs.clickDuration.inWholeMilliseconds
+        val clickStep = (clickDelay + clickDuration).coerceAtLeast(1)
+
+        /*
+         * One dispatchGesture call can carry several strokes, so taps are batched instead of
+         * waiting for a callback per tap (lottery multi-taps are the hot case). Staggered start
+         * times keep the taps sequential, exactly like dispatching them one by one.
+         */
+        var dispatched = 0
+        while (dispatched < times) {
+            // Strokes past the per-gesture caps would make GestureDescription.Builder.build() throw
+            val batchSize = minOf(
+                times - dispatched,
+                MAX_STROKES_PER_GESTURE,
+                ((MAX_GESTURE_DURATION_MS - clickDelay - clickDuration) / clickStep + 1)
+                    .toInt()
+                    .coerceAtLeast(1)
+            )
+
+            val gestureDesc = GestureDescription.Builder().apply {
+                repeat(batchSize) { i ->
+                    addStroke(
+                        GestureDescription.StrokeDescription(
+                            swipePath,
+                            clickDelay + i * clickStep,
+                            clickDuration
+                        )
+                    )
+                }
+            }.build()
+
+            performGesture(gestureDesc)
+            dispatched += batchSize
         }
 
         wait(gesturePrefs.clickWaitTime)
     }
 
-    private suspend fun performGesture(StrokeDesc: GestureDescription.StrokeDescription): Boolean = suspendCancellableCoroutine {
-        val gestureDesc = GestureDescription.Builder()
-            .addStroke(StrokeDesc)
-            .build()
+    private suspend fun performGesture(gestureDesc: GestureDescription): Boolean = suspendCancellableCoroutine { cont ->
+        val service = TapperService.instance
+
+        /*
+         * The accessibility service can be killed at any time, and dispatchGesture can refuse
+         * the gesture. In both cases the callback would never fire, which used to suspend the
+         * caller forever - and since click/swipe block the script thread in runBlocking, the
+         * whole script deadlocked.
+         */
+        if (service == null) {
+            Timber.w("Accessibility service not running, gesture skipped")
+            cont.resume(false)
+            return@suspendCancellableCoroutine
+        }
 
         val callback = object : AccessibilityService.GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
-                it.resume(true)
+                cont.resume(true)
             }
 
             override fun onCancelled(gestureDescription: GestureDescription?) {
-                it.resume(false)
+                cont.resume(false)
             }
         }
 
-        TapperService.instance?.dispatchGesture(gestureDesc, callback, null)
+        if (!service.dispatchGesture(gestureDesc, callback, null)) {
+            Timber.w("dispatchGesture refused the gesture")
+            cont.resume(false)
+        }
     }
 
+    private suspend fun performGesture(stroke: GestureDescription.StrokeDescription) =
+        performGesture(
+            GestureDescription.Builder()
+                .addStroke(stroke)
+                .build()
+        )
+
     override fun close() {}
+
+    companion object {
+        // Platform caps: gestures with more strokes or a longer runtime are rejected
+        private const val MAX_STROKES_PER_GESTURE = 10
+        private const val MAX_GESTURE_DURATION_MS = 60_000L
+    }
 }

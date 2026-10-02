@@ -23,11 +23,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -259,10 +262,16 @@ private fun SelectSpamMode(
     onSelectChange: (SpamEnum) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    // Keyed on the configuration so the cached strings refresh on language change
+    val entries = remember(LocalConfiguration.current) {
+        SpamEnum.entries.associateWith { context.getString(it.stringRes) }
+    }
+
     val dialog = listDialog(
         selected = selected,
         onSelectedChange = onSelectChange,
-        entries = SpamEnum.entries.associateWith { stringResource(it.stringRes) },
+        entries = entries,
         title = stringResource(R.string.spam)
     )
 
@@ -281,10 +290,16 @@ private fun SelectTarget(
     onSelectChange: (SkillSpamTarget) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    // Keyed on the configuration so the cached strings refresh on language change
+    val entries = remember(LocalConfiguration.current) {
+        SkillSpamTarget.entries.associateWith { context.getString(it.stringRes) }
+    }
+
     val dialog = listDialog(
         selected = selected,
         onSelectedChange = onSelectChange,
-        entries = SkillSpamTarget.entries.associateWith { stringResource(it.stringRes) },
+        entries = entries,
         title = stringResource(R.string.spam_target)
     )
 

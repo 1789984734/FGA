@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.onEach
 
 @Composable
 fun <T> Pref<T>.remember(): MutableState<T> {
-    var state by remember { mutableStateOf(defaultValue) }
+    var state by remember { mutableStateOf(get()) }
 
     LaunchedEffect(this) {
         asFlow()

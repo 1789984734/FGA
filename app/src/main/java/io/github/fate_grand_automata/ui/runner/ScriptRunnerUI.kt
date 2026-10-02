@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +25,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.PrefsCore
 import io.github.fate_grand_automata.scripts.enums.ScriptModeEnum
@@ -46,7 +46,7 @@ fun ScriptRunnerUI(
     val hidePlayButton by prefsCore.hidePlayButton.remember()
     val script by prefsCore.scriptMode.remember()
 
-    val completedRunsCount by completedRuns.collectAsState()
+    val completedRunsCount by completedRuns.collectAsStateWithLifecycle()
 
     FGATheme(
         darkTheme = true,

@@ -111,13 +111,14 @@ class ImageLoader @Inject constructor(
         }
     }
 
-    override fun loadMaterial(material: MaterialEnum) =
+    override fun loadMaterial(material: MaterialEnum) = synchronized(regionCachedPatterns) {
         regionCachedPatterns.getOrPut(key("materials/$material")) {
             DroidCvPattern(
                 Utils.loadResource(context, material.drawable, Imgcodecs.IMREAD_GRAYSCALE),
                 tag = "MAT:$material"
             )
         }
+    }
 }
 
 class SupportImageNotFoundException(kind: SupportImageKind, name: String) : 

@@ -123,6 +123,9 @@ class AutoBattle @Inject constructor(
 
             throw ExitException(reason, makeExitState())
         } finally {
+            state.stageCountSnapshot?.close()
+            state.stageCountSnapshot = null
+
             refill.autoDecrement()
             matTracker.autoDecrement()
             ceDropsTracker.autoDecrement()
@@ -274,15 +277,14 @@ class AutoBattle @Inject constructor(
      * All screens need to be included in case of getting stuck in one of them because of lags or
      * too few clicks.
      */
-    private fun isInResult(): Boolean {
-        val cases = sequenceOf(
-            images[Images.Result] to locations.resultScreenRegion,
-            images[Images.MasterLevelUp] to locations.resultMasterLvlUpRegion,
-            images[Images.MasterExp] to locations.resultMasterExpRegion
-        )
+    private val resultCases = sequenceOf(
+        images[Images.Result] to locations.resultScreenRegion,
+        images[Images.MasterLevelUp] to locations.resultMasterLvlUpRegion,
+        images[Images.MasterExp] to locations.resultMasterExpRegion
+    )
 
-        return cases.any { (image, region) -> image in region }
-    }
+    private fun isInResult(): Boolean =
+        resultCases.any { (image, region) -> image in region }
 
     private fun isInBondScreen() = images[Images.Bond] in locations.resultBondRegion
 

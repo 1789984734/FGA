@@ -37,7 +37,7 @@ class MlKitOcrService @Inject constructor() : OcrService {
                 try {
                     val image = InputImage.fromBitmap(usable, 0)
                     val result = Tasks.await(recognizer().process(image))
-                    Timber.w("OCR ${usable.width}x${usable.height} -> '${result.text}'")
+                    Timber.v("OCR ${usable.width}x${usable.height} -> '${result.text}'")
                     result.text
                 } finally {
                         if (usable !== bmp) usable.recycle()
@@ -73,10 +73,6 @@ class MlKitOcrService @Inject constructor() : OcrService {
             textRecognizer?.close()
             textRecognizer = null
         }
-    }
-
-    protected fun finalize() {
-        runCatching { close() }
     }
 
     private companion object {

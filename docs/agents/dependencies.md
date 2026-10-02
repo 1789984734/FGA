@@ -7,12 +7,13 @@
   21). Don't accept Android Studio's offer to generate `gradle/gradle-daemon-jvm.properties`
   (`updateDaemonJvm`): the toolchain is the pin, and that file forces a ~525 MB JBR download
   that drifts from the CI JDK.
-- **Emitted bytecode stays at Java 11** in every module — from `jvmTarget` in the root
+- **Emitted bytecode targets Java 21** in every module — from `jvmTarget` in the root
   `subprojects` block for `libautomata`/`scripts`, derived by AGP from `compileOptions` for
-  `app`/`prefs`. Toolchain and bytecode target are separate knobs; raising the latter means
-  checking D8 desugaring against minSdk 24. The one exception is `:scripts`'s *test*
-  compilation, pinned to 17 in `scripts/build.gradle.kts` because JUnit 6 requires it — test
-  code runs on the toolchain JVM and never reaches Android.
+  `app`/`prefs`. Toolchain and bytecode target are separate knobs; changing the latter means
+  checking D8 desugaring against minSdk 24. `:scripts`'s *test* compilation is also pinned
+  to 21 explicitly in `scripts/build.gradle.kts` (JUnit 6 ships Java 17 bytecode, and the
+  paired `compileTestJava` and the `TargetJvmVersion` attribute must agree) — test code runs
+  on the toolchain JVM and never reaches Android.
 - **AGP 9 compiles Kotlin itself.** `app` and `prefs` must *not* apply
   `org.jetbrains.kotlin.android` — AGP 9 rejects it outright. Their Kotlin output lands in
   `build/intermediates/built_in_kotlinc/`, not `build/tmp/kotlin-classes/`, and the root

@@ -7,9 +7,12 @@ interface ScreenshotService : AutoCloseable {
     /**
      * Takes a screenshot.
      *
-     * @return an [Pattern] with the image data
+     * @param region area of the screen the caller is interested in, in image pixels, or `null`
+     * for the whole screen. Implementations may use it to skip processing parts of the screen
+     * that would be cropped away anyway.
+     * @return an [Pattern] with the image data, covering [region] (or the whole screen)
      */
-    fun takeScreenshot(): Pattern
+    fun takeScreenshot(region: Region? = null): Pattern
 
     /**
      * Starts recording

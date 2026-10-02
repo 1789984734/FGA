@@ -86,7 +86,9 @@ class StandardAutomataApi @Inject constructor(
                 // is reliable alone.
                 ocrService.detectDigits(raw).let { if (it.isNotBlank()) return it }
 
-                return raw.copy().threshold(0.5).use { ocrService.detectDigits(it) }
+                return raw.copy().use { copied ->
+                    copied.threshold(0.5).use { ocrService.detectDigits(it) }
+                }
             }
     }
 
@@ -99,9 +101,10 @@ class StandardAutomataApi @Inject constructor(
         replacements: Map<Char, Char>,
         outlinedText: Boolean
     ): Long? {
-        val normalized = (if (outlinedText) detectText(true) else detectDigits())
-            .map { replacements[it] ?: it }
-            .joinToString("")
+        val normalized = buildString {
+            (if (outlinedText) detectText(true) else detectDigits())
+                .forEach { append(replacements[it] ?: it) }
+        }
 
         return NUMBER_REGEX.find(normalized)
             ?.value

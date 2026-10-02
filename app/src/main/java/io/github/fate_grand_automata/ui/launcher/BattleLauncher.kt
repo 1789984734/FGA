@@ -77,16 +77,17 @@ fun battleLauncher(
         )
     }
 
-    var refillResources by remember { mutableStateOf(perServerConfigPref.resources.toSet()) }
+    var selectedRefillResources by remember { mutableStateOf(perServerConfigPref.resources.toSet()) }
 
     val hideSQInAPResources by remember { mutableStateOf(prefs.hideSQInAPResources) }
-    if (hideSQInAPResources) {
-        refillResources = refillResources.minus(RefillResourceEnum.SQ)
-    }
 
-    //TODO remove
-    if (refillResources.size > 1) {
-        refillResources = setOf(refillResources.first())
+    val refillResources by remember {
+        derivedStateOf {
+            selectedRefillResources
+                .let { if (hideSQInAPResources) it - RefillResourceEnum.SQ else it }
+                //TODO remove
+                .let { if (it.size > 1) setOf(it.first()) else it }
+        }
     }
 
     val availableRefills = RefillResourceEnum.entries
@@ -100,18 +101,16 @@ fun battleLauncher(
     var rainbowApple by remember { mutableIntStateOf(perServerConfigPref.rainbowApple) }
 
     val refillCount by remember {
-        mutableStateOf(
-            derivedStateOf {
-                when {
-                    RefillResourceEnum.Copper in refillResources -> copperApple
-                    RefillResourceEnum.Bronze in refillResources -> blueApple
-                    RefillResourceEnum.Silver in refillResources -> silverApple
-                    RefillResourceEnum.Gold in refillResources -> goldApple
-                    RefillResourceEnum.SQ in refillResources -> rainbowApple
-                    else -> 0
-                }
+        derivedStateOf {
+            when {
+                RefillResourceEnum.Copper in refillResources -> copperApple
+                RefillResourceEnum.Bronze in refillResources -> blueApple
+                RefillResourceEnum.Silver in refillResources -> silverApple
+                RefillResourceEnum.Gold in refillResources -> goldApple
+                RefillResourceEnum.SQ in refillResources -> rainbowApple
+                else -> 0
             }
-        )
+        }
     }
 
     var shouldLimitRuns by remember { mutableStateOf(perServerConfigPref.shouldLimitRuns) }
@@ -234,7 +233,7 @@ fun battleLauncher(
                     )
 
                     Stepper(
-                        value = refillCount.value,
+                        value = refillCount,
                         onValueChange = { value ->
                             when {
                                 RefillResourceEnum.Copper in refillResources -> copperApple = value
@@ -264,7 +263,7 @@ fun battleLauncher(
                                 // TODO change back to refillResources.toggle()
 
                                 // if the tapped resource is the only one in the list, disable it. otherwise only select the tapped resource
-                                refillResources = if (it in refillResources) emptySet() else setOf(it)
+                                selectedRefillResources = if (it in refillResources) emptySet() else setOf(it)
                             }
                         )
                     }

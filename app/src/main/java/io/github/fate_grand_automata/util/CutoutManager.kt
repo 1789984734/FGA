@@ -16,14 +16,7 @@ class CutoutManager @Inject constructor(
     private val display: DisplayHelper,
     private val prefsCore: PrefsCore,
 ) {
-    private data class Cutout(val L: Int = 0, val T: Int = 0, val R: Int = 0, val B: Int = 0) {
-        companion object {
-            val NoCutouts = Cutout()
-        }
-    }
-
     private var cutoutFound = false
-    private var cutoutValue = Cutout.NoCutouts
 
     fun applyCutout(activity: Activity) {
         if (cutoutFound) {
@@ -42,29 +35,11 @@ class CutoutManager @Inject constructor(
             return
         }
 
-        val cutout = Cutout(
-            displayCutout.safeInsetLeft,
-            displayCutout.safeInsetTop,
-            displayCutout.safeInsetRight,
-            displayCutout.safeInsetBottom
-        )
-
-        // Check if there is a cutout
-        if (cutout != Cutout.NoCutouts) {
-            val rotation = display.rotation
-
-            // Store the cutout for Portrait orientation of device
-            val (l, t, r, b) = cutout
-            cutoutValue = when (rotation) {
-                Surface.ROTATION_90 -> Cutout(b, l, t, r)
-                Surface.ROTATION_180 -> Cutout(r, b, l, t)
-                Surface.ROTATION_270 -> Cutout(t, r, b, l)
-                else -> cutout
-            }
-        }
-
         cutoutFound = true
-        Timber.d("Detected display cutout: $cutoutValue")
+        Timber.d(
+            "Detected display cutout: L=${displayCutout.safeInsetLeft} T=${displayCutout.safeInsetTop} " +
+                    "R=${displayCutout.safeInsetRight} B=${displayCutout.safeInsetBottom}"
+        )
     }
 
     private fun getScreenSize(): Size {

@@ -1,6 +1,5 @@
 package io.github.fate_grand_automata.ui.battle_config_list
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -34,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.BattleConfigCore
@@ -49,8 +49,8 @@ fun BattleConfigListScreen(
     vm: BattleConfigListViewModel = viewModel(),
     navigate: (String) -> Unit
 ) {
-    val selectionMode by vm.selectionMode.collectAsState()
-    val selectedConfigs by vm.selectedConfigs.collectAsState()
+    val selectionMode by vm.selectionMode.collectAsStateWithLifecycle()
+    val selectedConfigs by vm.selectedConfigs.collectAsStateWithLifecycle()
 
     BackHandler(
         enabled = selectionMode,
@@ -81,7 +81,7 @@ fun BattleConfigListScreen(
         )
     }
 
-    val configs by vm.battleConfigItems.collectAsState(emptyList())
+    val configs by vm.battleConfigItems.collectAsStateWithLifecycle(emptyList())
 
     BattleConfigListContent(
         configs = configs,
@@ -121,7 +121,6 @@ private sealed class BattleConfigListAction {
     class Edit(val id: String) : BattleConfigListAction()
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
 private fun BattleConfigListContent(
     configs: List<BattleConfigCore>,
@@ -169,7 +168,7 @@ private fun BattleConfigListContent(
                     }
                 }
 
-                val servers by derivedStateOf {
+                val servers = remember(configs) {
                     configs
                         .mapNotNull { it.server.get().asGameServer() }
                         .distinct()
@@ -196,7 +195,7 @@ private fun BattleConfigListContent(
                             )
                         },
                         content = { current ->
-                            val filteredConfigs by derivedStateOf {
+                            val filteredConfigs = remember(configs, current) {
                                 configs
                                     .filter {
                                         val server = it.server.get().asGameServer()

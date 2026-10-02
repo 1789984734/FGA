@@ -24,7 +24,7 @@ class ScreenshotDrops @Inject constructor(
         for (i in 0..1) {
             useColor {
                 if (prefs.screenshotDropsUnmodified) {
-                    drops.add(screenshotService.takeScreenshot())
+                    drops.add(screenshotService.takeScreenshot().copy())
                 } else {
                     drops.add(locations.scriptArea.getPattern())
                 }

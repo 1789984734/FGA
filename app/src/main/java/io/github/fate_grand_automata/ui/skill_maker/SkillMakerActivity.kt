@@ -24,6 +24,7 @@ import io.github.fate_grand_automata.ui.skill_maker.special.SkillMakerChoice2
 import io.github.fate_grand_automata.ui.skill_maker.special.SkillMakerChoice2Target
 import io.github.fate_grand_automata.ui.skill_maker.special.SkillMakerChangeNpType3
 import io.github.fate_grand_automata.ui.skill_maker.special.SkillMakerChangeNpType2
+import timber.log.Timber
 
 @AndroidEntryPoint
 class SkillMakerActivity : AppCompatActivity() {
@@ -32,7 +33,14 @@ class SkillMakerActivity : AppCompatActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val configId = intent.getStringExtra(Route.BattleConfig.idArg)!!
+        val configId = intent.getStringExtra(Route.BattleConfig.idArg)
+
+        if (configId == null) {
+            // The extra can be gone after a process death / activity recreation
+            Timber.w("SkillMakerActivity started without a config id")
+            finish()
+            return
+        }
 
         setContent {
             FgaScreen {

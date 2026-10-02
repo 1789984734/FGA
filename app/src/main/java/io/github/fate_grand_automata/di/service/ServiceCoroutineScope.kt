@@ -7,6 +7,7 @@ import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.scopes.ServiceScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Qualifier
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -19,5 +20,5 @@ class ServiceCoroutineModule {
     @Provides
     @ServiceScoped
     @ServiceCoroutineScope
-    fun provideServiceCoroutineScope() = CoroutineScope(Dispatchers.Default)
+    fun provideServiceCoroutineScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }

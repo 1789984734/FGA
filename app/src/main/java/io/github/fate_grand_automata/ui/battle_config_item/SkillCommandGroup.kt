@@ -13,7 +13,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +23,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.prefs.core.BattleConfigCore
 import io.github.fate_grand_automata.scripts.models.AutoSkillCommand
@@ -42,7 +42,7 @@ fun SkillCommandGroup(
     openSkillMaker: () -> Unit
 ) {
     var cmd by config.skillCommand.remember()
-    val parsedCommand by vm.skillCommand.collectAsState(listOf())
+    val parsedCommand by vm.skillCommand.collectAsStateWithLifecycle(listOf())
     var editing by remember { mutableStateOf(false) }
 
     val invalidCommandMessage = stringResource(R.string.battle_config_cmd_invalid)

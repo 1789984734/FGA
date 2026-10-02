@@ -2,11 +2,12 @@ package io.github.fate_grand_automata.ui.main
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,10 +41,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import io.github.fate_grand_automata.BuildConfig
 import io.github.fate_grand_automata.R
 import io.github.fate_grand_automata.accessibility.TapperService
@@ -60,15 +60,29 @@ import io.github.fate_grand_automata.ui.prefs.Preference
 import io.github.fate_grand_automata.util.OpenDocTreePersistable
 
 @Composable
-@OptIn(ExperimentalPermissionsApi::class)
 fun MainScreen(
     vm: MainScreenViewModel = viewModel(),
     navigate: (MainScreenDestinations) -> Unit
 ) {
-    var dirPicker: ActivityResultLauncher<Uri?>? by remember { mutableStateOf(null) }
-    val permissionState = rememberPermissionState(permission = POST_NOTIFICATIONS)
+    val context = LocalContext.current
 
     var toggling by rememberSaveable { mutableStateOf(false) }
+
+    // Set when the directory picker returns, continues into toggleOverlayService() below.
+    // A flag is needed because the picker callback and toggleOverlayService() reference each other.
+    var toggleServiceAfterDirPick by remember { mutableStateOf(false) }
+
+    val dirPicker = rememberLauncherForActivityResult(OpenDocTreePersistable()) {
+        if (it != null) {
+            vm.storageProvider.setRoot(it)
+
+            toggleServiceAfterDirPick = true
+        }
+    }
+
+    val requestNotificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
 
     val accessibilityDisabledDialog = FgaDialog()
     accessibilityDisabledDialog.build {
@@ -98,19 +112,17 @@ fun MainScreen(
         )
     }
 
-    val context = LocalContext.current
-
     val startMediaProjection = rememberLauncherForActivityResult(StartMediaProjection()) {
         vm.onStartMediaProjectionResult(context, it)
     }
 
-    val pickDirectory: () -> Unit = { dirPicker?.launch(Uri.EMPTY) }
+    val pickDirectory: () -> Unit = { dirPicker.launch(Uri.EMPTY) }
 
     val requestNotifications: () -> Unit = {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-            && !permissionState.status.isGranted
+            && ContextCompat.checkSelfPermission(context, POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
-            permissionState.launchPermissionRequest()
+            requestNotificationPermission.launch(POST_NOTIFICATIONS)
         }
     }
 
@@ -128,10 +140,9 @@ fun MainScreen(
         )
     }
 
-    dirPicker = rememberLauncherForActivityResult(OpenDocTreePersistable()) {
-        if (it != null) {
-            vm.storageProvider.setRoot(it)
-
+    LaunchedEffect(toggleServiceAfterDirPick) {
+        if (toggleServiceAfterDirPick) {
+            toggleServiceAfterDirPick = false
             toggleOverlayService()
         }
     }
@@ -163,7 +174,7 @@ fun MainScreen(
                 navigate(MainScreenDestinations.AccessibilitySettings)
             }
         },
-        languagePref = LanguagePref()
+        languagePref = remember { LanguagePref() }
     )
 }
 

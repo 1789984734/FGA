@@ -243,20 +243,30 @@ class DroidCvPattern(
      * Finds holes in outlined text and returns a list of [Point]s to be used as starting point for [floodFill].
      */
     private fun getPointInHoles(img: Mat): List<Point> {
-        val work = Mat()
-        Core.bitwise_not(img, work)
-        val contours = mutableListOf<MatOfPoint>()
-        val hierarchy = Mat()
-        Imgproc.findContours(work, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
         val holePoints = mutableListOf<Point>()
-        contours.forEachIndexed { index, matOfPoint ->
-            val parent = hierarchy[0, index][3].toInt()
-            // top level holes have a parent but no grandparent...
-            if ((parent >= 0) && (hierarchy[0, parent][3] < 0)) {
-                holePoints.add(findTopHolePoint(matOfPoint))
-            }
 
+        Mat().use { work ->
+            Core.bitwise_not(img, work)
+
+            Mat().use { hierarchy ->
+                val contours = mutableListOf<MatOfPoint>()
+
+                try {
+                    Imgproc.findContours(work, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
+
+                    contours.forEachIndexed { index, matOfPoint ->
+                        val parent = hierarchy[0, index][3].toInt()
+                        // top level holes have a parent but no grandparent...
+                        if ((parent >= 0) && (hierarchy[0, parent][3] < 0)) {
+                            holePoints.add(findTopHolePoint(matOfPoint))
+                        }
+                    }
+                } finally {
+                    contours.forEach { it.release() }
+                }
+            }
         }
+
         return holePoints
     }
 }

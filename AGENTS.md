@@ -4,7 +4,7 @@ Path-specific guidance lives in [`docs/agents/`](docs/agents) so it is loaded on
 
 ## What this is
 
-Fate/Grand Automata (FGA) — an Android app that automates farming in the game *Fate/Grand Order*. It does **not** touch the game process: it reads the screen via MediaProjection, matches templates with OpenCV (plus Tesseract OCR), and taps/swipes through an AccessibilityService. Android 7+ (minSdk 24), no root required (root screenshots are an optional path).
+Fate/Grand Automata (FGA) — an Android app that automates farming in the game *Fate/Grand Order*. It does **not** touch the game process: it reads the screen via MediaProjection, matches templates with OpenCV (plus ML Kit OCR), and taps/swipes through an AccessibilityService. Android 7+ (minSdk 24), no root required (root screenshots are an optional path).
 
 ## Topic guides — read before touching these paths
 
@@ -25,7 +25,7 @@ Fate/Grand Automata (FGA) — an Android app that automates farming in the game 
 ./gradlew dependencyUpdates      # ben-manes versions plugin
 ```
 
-Everything builds on **JDK 21** via a Gradle toolchain pin; emitted bytecode stays at **Java 11**.
+Everything builds on **JDK 21** via a Gradle toolchain pin, and emitted bytecode targets **Java 21** in every module (root `subprojects` `jvmTarget` + per-module `compileOptions`).
 
 ## Module layout and dependency direction
 

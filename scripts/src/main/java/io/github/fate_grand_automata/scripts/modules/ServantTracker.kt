@@ -61,6 +61,7 @@ class ServantTracker @Inject constructor(
         checkImages.values.forEach { it.close() }
         faceCardImages.values.flatten().forEach { it.close() }
         checkImages.clear()
+        faceCardImages.clear()
     }
 
     private fun init(teamSlot: TeamSlot, slot: FieldSlot) {
@@ -77,6 +78,8 @@ class ServantTracker @Inject constructor(
             isSupport = isSupport(slot)
 
             if (teamSlot !in checkImages || isSupport) {
+                checkImages.remove(teamSlot)?.close()
+
                 checkImages[teamSlot] = TeamSlotData(
                     checkImage = mutableListOf(
                         locations.battle.servantChangeCheckRegion(slot)
@@ -215,10 +218,12 @@ class ServantTracker @Inject constructor(
                 // find the best matching Servant which isn't the support
                 ownedServants
                     .mapValues { (_, images) ->
-                        images.maxOf { image ->
+                        images.firstNotNullOfOrNull { image ->
                             locations.attack.servantMatchRegion(card)
-                                .find(image, 0.5)?.score ?: 0.0
-                        }
+                                .find(image, 0.5)
+                                ?.takeIf { it.score > 0.5 }
+                                ?.score
+                        } ?: 0.0
                     }
                     .filterValues { it > 0.0 }
                     .maxByOrNull { it.value }

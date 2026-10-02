@@ -44,6 +44,7 @@ class BattleState @Inject constructor() {
             minTurnsPerRun = minOf(minTurnsPerRun, runState.totalTurns)
             averageTurnsPerRun = totalTurns / runs.toDouble()
 
+            runState.stageState.stageCountSnapshot?.close()
             runState = RunState()
         }
 

@@ -53,13 +53,14 @@ class StageTracker @Inject constructor(
     private val stageCounterThreshold = 0.67
 
     private fun takeStageSnapshot() {
-        state.stageCountSnapshot =
-            locations.battle.master.stageCountRegion.getPattern("WAVE:${state.stage}")
+        state.stageCountSnapshot?.close()
 
-        if (prefs.stageCounterNew) {
+        val snapshot = locations.battle.master.stageCountRegion
+            .getPattern("WAVE:${state.stage}")
+
+        state.stageCountSnapshot = if (prefs.stageCounterNew) {
             // Extract white pixels from the image which gets rid of the background.
-            state.stageCountSnapshot =
-                state.stageCountSnapshot?.threshold(stageCounterThreshold)
-        }
+            snapshot.use { it.threshold(stageCounterThreshold) }
+        } else snapshot
     }
 }

@@ -31,6 +31,16 @@ class CardParser @Inject constructor(
         return CardAffinityEnum.Normal
     }
 
+    private val stunImages by lazy {
+        listOf(
+            images[Images.Stun],
+            images[Images.Immobilized],
+            images[Images.StunBuster],
+            images[Images.StunArts],
+            images[Images.StunQuick],
+        )
+    }
+
     private fun CommandCard.Face.isStunned(): Boolean {
         val stunRegion = locations.attack.typeRegion(this).copy(
             y = 930,
@@ -38,13 +48,7 @@ class CardParser @Inject constructor(
             height = 188
         )
 
-        return listOf(
-            images[Images.Stun],
-            images[Images.Immobilized],
-            images[Images.StunBuster],
-            images[Images.StunArts],
-            images[Images.StunQuick],
-        ) in stunRegion
+        return stunImages in stunRegion
     }
 
     private fun CommandCard.Face.type(): CardTypeEnum {

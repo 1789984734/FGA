@@ -9,11 +9,9 @@ plugins {
 }
 
 dependencies {
-//    implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     api(project(":libautomata"))
 
-    implementation(libs.kotlin.stdlib)
     // api: the @Serializable models are part of this module's public surface
     api(libs.kotlinx.serialization.core)
 

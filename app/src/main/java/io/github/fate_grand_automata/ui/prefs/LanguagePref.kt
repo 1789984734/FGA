@@ -40,8 +40,11 @@ class LanguagePref : Pref<String> {
     }
 
     override fun asFlow(): Flow<String> {
+        // The app locale lives in AppCompatDelegate, not SharedPreferences, so there is no
+        // flow source to observe. Emit the current value once; consumers re-collect (and pick up
+        // changes) after set() recreates the activity.
         return flow {
-            get()
+            emit(get())
         }
     }
 
