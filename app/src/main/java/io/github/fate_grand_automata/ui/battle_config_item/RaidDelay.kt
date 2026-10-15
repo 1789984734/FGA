@@ -136,7 +136,8 @@ fun RaidDelay(
                     onValueChange = {
                         currentRaidTurnDelaySeconds = it
                     },
-                    valueRange = 1..10,
+                    // 支持 1 至 60 秒的 Raid 回合延迟
+                    valueRange = 1..60,
                     valueRepresentation = {
                         "${it}s"
                     }
