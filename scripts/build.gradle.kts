@@ -58,3 +58,12 @@ listOf(configurations.testCompileClasspath, configurations.testRuntimeClasspath)
         }
     }
 }
+
+// Keep toolchain and compiler options local so Isolated Projects can configure modules safely.
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}

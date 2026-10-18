@@ -2,13 +2,14 @@
 
 ## Toolchain pins
 
-- **JDK 21** is pinned as a Java toolchain for all modules in the root `subprojects` block,
+- **JDK 21** is pinned in module-local Kotlin toolchains (`libautomata`, `scripts`)
+  and Java-base callbacks (`app`, `prefs`),
   so it doesn't matter which JVM launches Gradle (Studio's JBR, a system JDK, CI's temurin
   21). Don't accept Android Studio's offer to generate `gradle/gradle-daemon-jvm.properties`
   (`updateDaemonJvm`): the toolchain is the pin, and that file forces a ~525 MB JBR download
   that drifts from the CI JDK.
-- **Emitted bytecode targets Java 21** in every module — from `jvmTarget` in the root
-  `subprojects` block for `libautomata`/`scripts`, derived by AGP from `compileOptions` for
+- **Emitted bytecode targets Java 21** in every module — from module-local `jvmTarget`
+  for `libautomata`/`scripts`, derived by AGP from `compileOptions` for
   `app`/`prefs`. Toolchain and bytecode target are separate knobs; changing the latter means
   checking D8 desugaring against minSdk 24. `:scripts`'s *test* compilation is also pinned
   to 21 explicitly in `scripts/build.gradle.kts` (JUnit 6 ships Java 17 bytecode, and the
@@ -16,8 +17,8 @@
   on the toolchain JVM and never reaches Android.
 - **AGP 9 compiles Kotlin itself.** `app` and `prefs` must *not* apply
   `org.jetbrains.kotlin.android` — AGP 9 rejects it outright. Their Kotlin output lands in
-  `build/intermediates/built_in_kotlinc/`, not `build/tmp/kotlin-classes/`, and the root
-  block's `tasks.withType<KotlinCompile>` no longer reaches them: per-module compiler
+  `build/intermediates/built_in_kotlinc/`, not `build/tmp/kotlin-classes/`, and `tasks.withType<KotlinCompile>`
+  does not configure their built-in compiler: per-module compiler
   settings belong in that module's `android { kotlin { compilerOptions { } } }`.
 - `compileSdk` is **37** while `targetSdk` stays **36** — recent androidx libraries force
   the compile level, but nothing opts into new runtime behavior. Keep the two decoupled;
@@ -84,3 +85,8 @@ version and compileSdk directly, much faster than bisecting versions.
 
 Dependabot PRs here only touch `Gemfile.lock` (fastlane) and are often already behind
 `master`; check before applying one.
+
+## Configuration isolation
+
+Keep toolchain and compiler options in each owning module. Do not reintroduce root
+`subprojects` mutation: it prevents Isolated Projects from configuring modules safely.

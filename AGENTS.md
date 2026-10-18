@@ -25,7 +25,7 @@ Fate/Grand Automata (FGA) — an Android app that automates farming in the game 
 ./gradlew dependencyUpdates      # ben-manes versions plugin
 ```
 
-Everything builds on **JDK 21** via a Gradle toolchain pin, and emitted bytecode targets **Java 21** in every module (root `subprojects` `jvmTarget` + per-module `compileOptions`).
+Toolchain configuration stays local to each module and preserves **JDK 21**. Emitted bytecode targets **Java 21** through module-local compiler options. Configuration uses no root `subprojects` mutation.
 
 ## Module layout and dependency direction
 

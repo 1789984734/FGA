@@ -1,5 +1,4 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -12,25 +11,6 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt.android) apply false
-}
-
-subprojects {
-    // Compile every module with JDK 21, whichever JVM happens to launch Gradle.
-    // Bytecode targets 21 - see jvmTarget below and each module's compileOptions.
-    pluginManager.withPlugin("java-base") {
-        extensions.configure<JavaPluginExtension> {
-            toolchain {
-                languageVersion.set(JavaLanguageVersion.of(21))
-            }
-        }
-    }
-
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        compilerOptions {
-            freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
-    }
 }
 
 tasks.register<Delete>("clean") {

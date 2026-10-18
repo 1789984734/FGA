@@ -50,3 +50,10 @@ dependencies {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
+
+// Preserve the former root Java toolchain convention inside the owning Android module.
+pluginManager.withPlugin("java-base") {
+    extensions.configure<JavaPluginExtension> {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
