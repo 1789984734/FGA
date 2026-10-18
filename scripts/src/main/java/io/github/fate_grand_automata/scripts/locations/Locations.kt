@@ -106,16 +106,15 @@ class Locations @Inject constructor(
     val resultFriendRequestRegion = Region(600, 150, 100, 94).xFromCenter()
 
     /**
-     * Candidate clicks that dismiss the post-battle friend-request dialog.
+     * 战斗结束后的好友申请弹窗候选点击点。
      *
-     * Either Accept (申请) or Reject (不申请) is fine. The Follow (关注) option
-     * pushes the buttons lower, so multiple Y positions are included. Prefer the
-     * lower positions first because the legacy Y=1200 often lands above the buttons.
+     * 仅点击“结束”（取消申请）按钮以安全退出弹窗，避免点击“申请好友”因对方好友上限而导致卡死。
+     * 1440p 下按钮中心 Y 约为 1230，按钮范围约为 1164..1295。
      */
-    val resultFriendRequestDismissClicks: List<Location> = listOf(1300, 1340, 1240, 1200).flatMap { y ->
+    val resultFriendRequestDismissClicks: List<Location> = listOf(1230, 1200, 1260).flatMap { y ->
         listOf(
-            Location(-680, y).xFromCenter(), // Reject / 不申请
-            Location(640, y).xFromCenter(),  // Accept / 申请
+            Location(-620, y).xFromCenter(), // “结束”按钮中心
+            Location(-680, y).xFromCenter(), // “结束”按钮偏左
         )
     }
     val resultMatRewardsRegion = Region(800, 1220, 280, 130).xFromCenter()

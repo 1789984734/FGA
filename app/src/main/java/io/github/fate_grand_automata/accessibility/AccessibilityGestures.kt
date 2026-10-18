@@ -11,6 +11,7 @@ import io.github.lib_automata.Location
 import io.github.lib_automata.Waiter
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -170,34 +171,45 @@ class AccessibilityGestures @Inject constructor(
         wait(gesturePrefs.clickWaitTime)
     }
 
-    private suspend fun performGesture(gestureDesc: GestureDescription): Boolean = suspendCancellableCoroutine { cont ->
-        val service = TapperService.instance
+    private suspend fun performGesture(gestureDesc: GestureDescription): Boolean {
+        val timeoutMs = (0 until gestureDesc.strokeCount).maxOfOrNull {
+            val stroke = gestureDesc.getStroke(it)
+            stroke.startTime + stroke.duration
+        }?.plus(2000L)?.coerceAtLeast(3000L) ?: 3000L
 
-        /*
-         * The accessibility service can be killed at any time, and dispatchGesture can refuse
-         * the gesture. In both cases the callback would never fire, which used to suspend the
-         * caller forever - and since click/swipe block the script thread in runBlocking, the
-         * whole script deadlocked.
-         */
-        if (service == null) {
-            Timber.w("Accessibility service not running, gesture skipped")
-            cont.resume(false)
-            return@suspendCancellableCoroutine
-        }
+        return withTimeoutOrNull(timeoutMs) {
+            suspendCancellableCoroutine { cont ->
+                val service = TapperService.instance
 
-        val callback = object : AccessibilityService.GestureResultCallback() {
-            override fun onCompleted(gestureDescription: GestureDescription?) {
-                cont.resume(true)
+                /*
+                 * 无障碍服务可能随时终止，且 dispatchGesture 可能拒绝手势。
+                 * 在这两种情况下，或某些系统/模拟器丢失 completion 回调时，回调可能永远不会触发。
+                 * 增加超时和判空保护，防止 runBlocking 导致脚本线程永久死锁。
+                 */
+                if (service == null) {
+                    Timber.w("Accessibility service not running, gesture skipped")
+                    cont.resume(false)
+                    return@suspendCancellableCoroutine
+                }
+
+                val callback = object : AccessibilityService.GestureResultCallback() {
+                    override fun onCompleted(gestureDescription: GestureDescription?) {
+                        if (cont.isActive) cont.resume(true)
+                    }
+
+                    override fun onCancelled(gestureDescription: GestureDescription?) {
+                        if (cont.isActive) cont.resume(false)
+                    }
+                }
+
+                if (!service.dispatchGesture(gestureDesc, callback, null)) {
+                    Timber.w("dispatchGesture refused the gesture")
+                    if (cont.isActive) cont.resume(false)
+                }
             }
-
-            override fun onCancelled(gestureDescription: GestureDescription?) {
-                cont.resume(false)
-            }
-        }
-
-        if (!service.dispatchGesture(gestureDesc, callback, null)) {
-            Timber.w("dispatchGesture refused the gesture")
-            cont.resume(false)
+        } ?: run {
+            Timber.w("Gesture dispatch timed out after ${timeoutMs}ms")
+            false
         }
     }
 
