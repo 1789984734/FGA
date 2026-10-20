@@ -615,6 +615,9 @@
     <string name="error_no_screenshot_received">"截屏未返回任何图像。请重启 FGA 并重新授予截屏权限。"</string>
     <string name="error_screen_capture_stopped">"截屏已停止。系统或其他应用占用、显示变化都可能导致此问题。请重启 FGA 并重新授予截屏权限。"</string>
     <string name="error_no_suitable_target_ce_found">"未找到合适的目标礼装"</string>
+    <string name="error_game_server_not_detected">"FGA 无法检测当前正在运行的 FGO 服务器。请退出 FGO 并重新打开后重试。
+
+如果您的 FGO 版本未被识别或运行在应用分身/多开空间中，请前往 %1$s > %2$s > %3$s 手动选择您的服务器。"</string>
     <string name="state_on">"开启"</string>
     <string name="state_off">"关闭"</string>
 </resources>

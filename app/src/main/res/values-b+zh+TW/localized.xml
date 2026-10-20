@@ -615,4 +615,7 @@ Order Change"</string>
     <string name="servant_enhancement_perform_grail_failed">"無法繼續執行聖杯轉臨"</string>
     <string name="state_on">"開啟"</string>
     <string name="state_off">"關閉"</string>
+    <string name="error_game_server_not_detected">"FGA 無法偵測目前正在執行的 FGO 伺服器。請退出 FGO 並重新開啟後重試。
+
+如果您的 FGO 版本未被識別或執行在應用雙開/多開空間中，請前往 %1$s > %2$s > %3$s 手動選擇您的伺服器。"</string>
 </resources>

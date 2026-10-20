@@ -8,6 +8,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import io.github.fate_grand_automata.scripts.enums.GameServer
 import io.github.fate_grand_automata.scripts.enums.GameServers
 import timber.log.Timber
 
@@ -100,7 +101,12 @@ class TapperService : AccessibilityService() {
         }
     }
 
-    var detectedFgoServer = GameServers.default
+    /**
+     * The server of the last FGO app seen in the foreground, or null if none has been seen yet.
+     * Only packages in [GameServers.packageNames] are detected, so unlisted FGO versions and FGO
+     * running inside an app cloner leave this null.
+     */
+    var detectedFgoServer: GameServer? = null
         private set
 
     /**
