@@ -9,12 +9,10 @@ import io.github.fate_grand_automata.scripts.prefs.IGesturesPreferences
 import io.github.lib_automata.GestureService
 import io.github.lib_automata.Location
 import io.github.lib_automata.Waiter
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.coroutines.resume
 import kotlin.math.*
 
 /**
@@ -36,7 +34,7 @@ class AccessibilityGestures @Inject constructor(
      * On Android 7, swipe is like a flick.
      * If the swipe distance is too long, FGO won't detect it correctly and have occasional weird behaviour like sudden jumps
      */
-    suspend fun swipe7(start: Location, end: Location) {
+    fun swipe7(start: Location, end: Location) {
         val swipePath = Path()
             .moveTo(start)
             .lineTo(end)
@@ -59,7 +57,7 @@ class AccessibilityGestures @Inject constructor(
      * There is a finger down delay, followed by multiple small swipe events, followed by a finger lift delay.
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun swipe8(start: Location, end: Location) {
+    fun swipe8(start: Location, end: Location) {
         val xDiff = (end.x - start.x).toFloat()
         val yDiff = (end.y - start.y).toFloat()
         val direction = atan2(xDiff, yDiff)
@@ -119,7 +117,7 @@ class AccessibilityGestures @Inject constructor(
         }
     }
 
-    override fun swipe(start: Location, end: Location) = runBlocking {
+    override fun swipe(start: Location, end: Location) {
         Timber.d("swipe $start, $end")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -127,7 +125,7 @@ class AccessibilityGestures @Inject constructor(
         } else swipe7(start, end)
     }
 
-    override fun click(location: Location, times: Int) = runBlocking {
+    override fun click(location: Location, times: Int) {
         val swipePath = Path().moveTo(location)
 
         Timber.d("click $location x$times")
@@ -171,49 +169,56 @@ class AccessibilityGestures @Inject constructor(
         wait(gesturePrefs.clickWaitTime)
     }
 
-    private suspend fun performGesture(gestureDesc: GestureDescription): Boolean {
+    private fun performGesture(gestureDesc: GestureDescription): Boolean {
+        val service = TapperService.instance
+        if (service == null) {
+            Timber.w("Accessibility service not running, gesture skipped")
+            return false
+        }
+
         val timeoutMs = (0 until gestureDesc.strokeCount).maxOfOrNull {
             val stroke = gestureDesc.getStroke(it)
             stroke.startTime + stroke.duration
         }?.plus(2000L)?.coerceAtLeast(3000L) ?: 3000L
 
-        return withTimeoutOrNull(timeoutMs) {
-            suspendCancellableCoroutine { cont ->
-                val service = TapperService.instance
+        val latch = CountDownLatch(1)
+        var result = false
 
-                /*
-                 * 无障碍服务可能随时终止，且 dispatchGesture 可能拒绝手势。
-                 * 在这两种情况下，或某些系统/模拟器丢失 completion 回调时，回调可能永远不会触发。
-                 * 增加超时和判空保护，防止 runBlocking 导致脚本线程永久死锁。
-                 */
-                if (service == null) {
-                    Timber.w("Accessibility service not running, gesture skipped")
-                    cont.resume(false)
-                    return@suspendCancellableCoroutine
-                }
-
-                val callback = object : AccessibilityService.GestureResultCallback() {
-                    override fun onCompleted(gestureDescription: GestureDescription?) {
-                        if (cont.isActive) cont.resume(true)
-                    }
-
-                    override fun onCancelled(gestureDescription: GestureDescription?) {
-                        if (cont.isActive) cont.resume(false)
-                    }
-                }
-
-                if (!service.dispatchGesture(gestureDesc, callback, null)) {
-                    Timber.w("dispatchGesture refused the gesture")
-                    if (cont.isActive) cont.resume(false)
-                }
+        val callback = object : AccessibilityService.GestureResultCallback() {
+            override fun onCompleted(gestureDescription: GestureDescription?) {
+                result = true
+                latch.countDown()
             }
-        } ?: run {
-            Timber.w("Gesture dispatch timed out after ${timeoutMs}ms")
+
+            override fun onCancelled(gestureDescription: GestureDescription?) {
+                result = false
+                latch.countDown()
+            }
+        }
+
+        val dispatched = service.dispatchGesture(gestureDesc, callback, null)
+        if (!dispatched) {
+            Timber.w("dispatchGesture refused the gesture")
+            return false
+        }
+
+        // 使用 CountDownLatch 进行硬超时等待，绝不依赖协程 EventLoop，超时后内核必定强制唤醒当前线程
+        val completed = try {
+            latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+        } catch (e: InterruptedException) {
+            Timber.w("Gesture interrupted while waiting")
             false
         }
+
+        if (!completed) {
+            Timber.w("Gesture dispatch timed out after ${timeoutMs}ms (forced unlock)")
+            return false
+        }
+
+        return result
     }
 
-    private suspend fun performGesture(stroke: GestureDescription.StrokeDescription) =
+    private fun performGesture(stroke: GestureDescription.StrokeDescription) =
         performGesture(
             GestureDescription.Builder()
                 .addStroke(stroke)
