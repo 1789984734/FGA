@@ -208,15 +208,15 @@ class AutoBattle @Inject constructor(
             { isInResult() } to { result() },
             { isInDropsScreen() } to { dropScreen() },
             { isInQuestRewardScreen() } to { questReward() },
+            { isFriendRequestScreen() } to { skipFriendRequestScreen() },
+            { isBond10CEReward() } to { bond10CEReward() },
+            { isCeRewardDetails() } to { ceRewardDetails() },
             { isInSupport() } to { support() },
             { isRepeatScreen() } to { repeatQuest() },
             { isInOrdealCallOutOfPodsScreen() } to { ordealCallOutOfPods() },
             { isInInterludeEndScreen() } to { locations.interludeCloseClick.click() },
             { withdraw.needsToWithdraw() } to { withdraw.withdraw() },
             { needsToStorySkip() } to { skipStory() },
-            { isFriendRequestScreen() } to { skipFriendRequestScreen() },
-            { isBond10CEReward() } to { bond10CEReward() },
-            { isCeRewardDetails() } to { ceRewardDetails() },
             { isDeathAnimation() } to { locations.battle.battleSafeMiddleOfScreenClick.click() },
             { isRankUp() } to { locations.middleOfScreenClick.click() },
             { isBetweenWaves() } to { locations.battle.battleSafeMiddleOfScreenClick.click() },
@@ -524,6 +524,8 @@ class AutoBattle @Inject constructor(
      */
     private fun needsToStorySkip() =
         prefs.storySkip && storySkipPossible &&
+                // 好友申请等结算模态弹窗未关闭时绝不误判剧情跳过
+                !isFriendRequestScreen() &&
                 locations.menuStorySkipRegion.exists(images[Images.StorySkip], similarity = 0.7)
 
     private fun skipStory() {
