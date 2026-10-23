@@ -526,7 +526,7 @@ class AutoBattle @Inject constructor(
         prefs.storySkip && storySkipPossible &&
                 // 好友申请等结算模态弹窗未关闭时绝不误判剧情跳过
                 !isFriendRequestScreen() &&
-                locations.menuStorySkipRegion.exists(images[Images.StorySkip], similarity = 0.7)
+                locations.menuStorySkipRegion.exists(images[Images.StorySkip], similarity = 0.85)
 
     private fun skipStory() {
         locations.menuStorySkipClick.click()
