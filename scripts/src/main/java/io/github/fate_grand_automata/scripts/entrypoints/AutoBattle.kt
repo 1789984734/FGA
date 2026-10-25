@@ -373,6 +373,18 @@ class AutoBattle @Inject constructor(
     }
 
     private fun rewardCardScreen() {
+        if (prefs.stopOnFirstClearRewards) {
+            val isQuestClear = try {
+                val headerText = locations.resultQuestRewardRegion.detectText()
+                "报" in headerText || "酬" in headerText || "reward" in headerText.lowercase()
+            } catch (_: Throwable) {
+                false
+            }
+            if (isQuestClear) {
+                state.nextRun()
+                throw BattleExitException(ExitReason.FirstClearRewards)
+            }
+        }
         locations.middleOfScreenClick.click()
     }
 
