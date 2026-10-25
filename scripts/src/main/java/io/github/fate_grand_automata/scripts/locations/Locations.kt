@@ -135,6 +135,8 @@ class Locations @Inject constructor(
     val resultCeRewardRegion = Region(-230, 1216, 33, 28).xFromCenter()
     val resultCeRewardDetailsRegion = Region(if (isWide) 193 else 0, 512, 135, 115)
     val resultCeRewardCloseClick = Location(if (isWide) 265 else 80, 60)
+    // 战斗结束后获得礼装/指令纹章/通关卡片等展示时，底部“请点击游戏界面/Touch Screen”检测区域
+    val resultTouchScreenRegion = Region(-350, 1310, 700, 120).xFromCenter()
 
     val giftBoxSwipeStart = Location(120, if (canLongSwipe) 1200 else 1050).xFromCenter()
     val giftBoxSwipeEnd = Location(120, if (canLongSwipe) 350 else 575).xFromCenter()

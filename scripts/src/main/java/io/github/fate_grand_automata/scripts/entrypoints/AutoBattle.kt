@@ -207,10 +207,11 @@ class AutoBattle @Inject constructor(
             { isInBondScreen() } to { handleBondScreen() },
             { isInResult() } to { result() },
             { isInDropsScreen() } to { dropScreen() },
-            { isInQuestRewardScreen() } to { questReward() },
-            { isFriendRequestScreen() } to { skipFriendRequestScreen() },
+            { isRewardCardScreen() } to { rewardCardScreen() },
             { isBond10CEReward() } to { bond10CEReward() },
             { isCeRewardDetails() } to { ceRewardDetails() },
+            { isInQuestRewardScreen() } to { questReward() },
+            { isFriendRequestScreen() } to { skipFriendRequestScreen() },
             { isInSupport() } to { support() },
             { isRepeatScreen() } to { repeatQuest() },
             { isInOrdealCallOutOfPodsScreen() } to { ordealCallOutOfPods() },
@@ -353,6 +354,26 @@ class AutoBattle @Inject constructor(
         }
 
         locations.scriptArea.center.click()
+    }
+
+    /**
+     * 战斗结算中获得概念礼装、指令纹章或通关特殊卡片奖励展示界面（底部提示“请点击游戏界面”或“Touch Screen”）。
+     */
+    private fun isRewardCardScreen(): Boolean {
+        if (!storySkipPossible || isFriendRequestScreen() || isRepeatScreen()) {
+            return false
+        }
+        return locations.resultTouchScreenRegion.exists(images[Images.TouchScreen], similarity = 0.8) ||
+                try {
+                    val text = locations.resultTouchScreenRegion.detectText().lowercase()
+                    "点击" in text || "界面" in text || "touch" in text || "screen" in text
+                } catch (_: Throwable) {
+                    false
+                }
+    }
+
+    private fun rewardCardScreen() {
+        locations.middleOfScreenClick.click()
     }
 
     private fun isCeRewardDetails() =
@@ -526,6 +547,7 @@ class AutoBattle @Inject constructor(
         prefs.storySkip && storySkipPossible &&
                 // 好友申请等结算模态弹窗未关闭时绝不误判剧情跳过
                 !isFriendRequestScreen() &&
+                !isRewardCardScreen() &&
                 locations.menuStorySkipRegion.exists(images[Images.StorySkip], similarity = 0.85)
 
     private fun skipStory() {

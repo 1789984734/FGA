@@ -23,6 +23,7 @@ enum class Images(val path: String) {
     Bond("bond.png"),
     Bond10Reward("bond10.png"),
     CEDetails("ce_details.png"),
+    TouchScreen("touch_screen.png"),
     Repeat("repeat.png"),
     QuestReward("questreward.png"),
     Retry("retry.png"),
