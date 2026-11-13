@@ -44,15 +44,17 @@ class CESelection @Inject constructor(
         if (isGrandServant(grandSearchRegion)) {
             val matched = ces
                 .flatMap { entry -> images.loadSupportPattern(SupportImageKind.CE, entry) }
-                .mapNotNull {
-                    grandSearchRegion.find(it)
+                .flatMap {
+                    // 获取区域内全部匹配，避免仅取最高分漏掉另一礼装槽或未满破干扰满破匹配
+                    grandSearchRegion.findAll(it)
                 }
                 .filter {
                     !supportPrefs.mlb || isGrandLimitBroken(it.region)
                 }
 
-            val grandCeRegion1 = locations.support.grandCeRegion1.copy(y = searchRegion.y + locations.support.grandCeRegion1.y)
-            val grandCeRegion3 = locations.support.grandCeRegion3.copy(y = searchRegion.y + locations.support.grandCeRegion3.y)
+            val cardTopY = bounds.region.y
+            val grandCeRegion1 = locations.support.grandCeRegion1.copy(y = cardTopY + locations.support.grandCeRegion1.y)
+            val grandCeRegion3 = locations.support.grandCeRegion3.copy(y = cardTopY + locations.support.grandCeRegion3.y)
 
             val normalMatch = matched.any { grandCeRegion1.contains(it.region) }
             val rewardMatch = matched.any { grandCeRegion3.contains(it.region) }
@@ -71,7 +73,7 @@ class CESelection @Inject constructor(
                 BondCEEffectEnum.Default -> Images.BondCeEffectDefault
                 BondCEEffectEnum.NP -> Images.BondCeEffectNP
             }
-            val bondRegion = locations.support.bondCeRegion.copy(y = searchRegion.y + locations.support.bondCeRegion.y)
+            val bondRegion = locations.support.bondCeRegion.copy(y = cardTopY + locations.support.bondCeRegion.y)
 
             return bondRegion.exists(images[bondEffectImage], similarity = bondEffectSimilarity)
         } else {

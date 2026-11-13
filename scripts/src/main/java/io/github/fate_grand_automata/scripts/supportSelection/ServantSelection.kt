@@ -23,8 +23,16 @@ class ServantSelection @Inject constructor(
         // TODO: Only check the upper part (excluding CE)
         val searchRegion = bounds.region.clip(locations.support.listRegion)
 
-        if (servants.isEmpty())
-            return true
+        if (servants.isEmpty()) {
+            // 未指定偏好从者但开启了“冠位从者”时，仍需校验是否为冠位从者
+            if (!supportPrefs.grandServant) {
+                return true
+            }
+            val grandSearchRegion = bounds.region.clip(locations.support.grandCeListRegion)
+            val multiCeLabelRegion = locations.support.grandCeLabelRegion
+                .copy(y = grandSearchRegion.y + 40)
+            return grandChecker.isGrandPresent(multiCeLabelRegion)
+        }
 
         val matched = servants
             .flatMap { entry -> images.loadSupportPattern(SupportImageKind.Servant, entry) }

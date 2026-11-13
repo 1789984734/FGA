@@ -117,13 +117,14 @@ private fun PreferredSupport(
                         entries = servantEntries
                     )
 
+                    // 无论是否指定偏好从者，都允许开启“冠位从者”过滤及关联的冠位礼装双槽选项
+                    config.grandServant.SwitchPreference(
+                        title = stringResource(R.string.p_battle_config_support_grand_servant)
+                    )
+
                     if (prefServants.isNotEmpty()) {
                         config.maxAscended.SwitchPreference(
                             title = stringResource(R.string.p_battle_config_support_max_ascended)
-                        )
-
-                        config.grandServant.SwitchPreference(
-                            title = stringResource(R.string.p_battle_config_support_grand_servant)
                         )
 
                         Row(
