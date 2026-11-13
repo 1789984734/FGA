@@ -63,21 +63,10 @@ class AutoServantLevel @Inject constructor(
 
         /**
          * The script exited because it was redirected to the ascension menu.
-         * If the user didn't enabled the option to perform ascension, the script will exit.
-         */
-        data object RedirectAscension : ExitReason()
-
-        /**
-         * The script exited because it was redirected to the ascension menu.
          * While the user enabled the option to perform ascension, it was unable to do so.
          */
 
         data object UnableToPerformAscension : ExitReason()
-
-        /**
-         * The script exited because it was redirected to the grail menu.
-         */
-        data object RedirectGrail : ExitReason()
 
         /**
          * The script exited because Palingenesis could not be performed safely.
@@ -171,16 +160,8 @@ class AutoServantLevel @Inject constructor(
     }
 
     /**
-     * This function will check if the max level is achieved.
-     *
-     * If it is, it will check if the user enabled the option to redirect to the ascension menu or grail menu.
-     *
-     * If the user enabled the option to redirect to the ascension menu,
-     * it will wait until the ascension menu is visible.
-     *
-     * If the user enabled the option to redirect to the grail menu, it will wait until the grail menu is visible.
-     *
-     * If the user didn't enabled any of the options, it will exit the script.
+     * At max level, redirect to an available ascension or grail menu only when the
+     * corresponding operation is enabled. Otherwise, stop the script.
      */
     private fun checkMaxLevelRedirectOrExit() {
         // reset of isRefundWindowClicked state
@@ -193,8 +174,8 @@ class AutoServantLevel @Inject constructor(
         var ascensionRedirect = false
         var grailRedirect = false
         useSameSnapIn {
-            ascensionRedirect = prefs.servant.shouldRedirectAscension && isRedirectAscensionVisible()
-            grailRedirect = prefs.servant.shouldRedirectGrail && isRedirectGrailVisible()
+            ascensionRedirect = prefs.servant.shouldPerformAscension && isRedirectAscensionVisible()
+            grailRedirect = prefs.servant.shouldPerformGrail && isRedirectGrailVisible()
         }
         when {
             ascensionRedirect -> {
@@ -205,9 +186,6 @@ class AutoServantLevel @Inject constructor(
                         break
                     }
                 }
-                if (!prefs.servant.shouldPerformAscension) {
-                    throw ServantUpgradeException(ExitReason.RedirectAscension)
-                }
             }
 
             grailRedirect -> {
@@ -217,9 +195,6 @@ class AutoServantLevel @Inject constructor(
                     if (isVisible) {
                         break
                     }
-                }
-                if (!prefs.servant.shouldPerformGrail) {
-                    throw ServantUpgradeException(ExitReason.RedirectGrail)
                 }
                 isInGrail = true
             }

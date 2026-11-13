@@ -321,11 +321,6 @@ class ScriptManager @Inject constructor(
                     AutoServantLevel.ExitReason.Abort ->
                         context.getString(R.string.servant_enhancement_aborted)
 
-                    AutoServantLevel.ExitReason.RedirectAscension ->
-                        context.getString(R.string.servant_enhancement_redirect_ascension_success)
-                    AutoServantLevel.ExitReason.RedirectGrail ->
-                        context.getString(R.string.servant_enhancement_redirect_grail_success)
-
                     AutoServantLevel.ExitReason.UnableToPerformGrail ->
                         context.getString(R.string.servant_enhancement_perform_grail_failed)
 
