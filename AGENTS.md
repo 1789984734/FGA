@@ -19,6 +19,7 @@ Fate/Grand Automata (FGA) — an Android app that automates farming in the game 
 
 ```bash
 ./gradlew :app:compileDebugKotlin # Compiles the kotlin code for the android app.
+./gradlew assembleCi             # CI-variant release APK: app/build/outputs/apk/ci/app-ci.apk
 ./gradlew :scripts:test          # the only unit tests in the repo (JUnit 5 + assertk + mockk)
 ./gradlew :scripts:test --tests '*SupportSelectionTest'          # single test class
 ./gradlew :scripts:test --tests '*SupportSelectionTest.someName' # single test method
@@ -27,6 +28,8 @@ Fate/Grand Automata (FGA) — an Android app that automates farming in the game 
 ```
 
 Toolchain configuration stays local to each module and preserves **JDK 21**. Emitted bytecode targets **Java 21** through module-local compiler options. Configuration uses no root `subprojects` mutation.
+
+**"CI" means the `ci` build type, not GitHub Actions.** Unless the user explicitly asks to run the GitHub Actions workflow, a request to build "the CI version / CI 版 Release" means `./gradlew assembleCi` locally: the `ci` build type is release-based and minified, uses the `.debug` applicationId suffix, is debug-signed, ships only `armeabi-v7a`/`arm64-v8a` ABIs, and keeps the default `versionCode`/`versionName` (the CI workflow overrides those with its run number). Dispatch the PR Build workflow (`.github/workflows/pr-build.yml`) only on explicit request — it builds the same package remotely.
 
 ## Module layout and dependency direction
 

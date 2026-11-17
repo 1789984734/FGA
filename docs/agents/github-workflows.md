@@ -20,3 +20,5 @@ pruned. A workflow or action missing from the lockfile is blocked from running b
 Workflows that use a same-repo `./…` action cannot be locked; reference it as `$/…` instead.
 
 Renovate bumps action versions and updates the lockfile in the same PR.
+
+Unless the user explicitly asks for it, don't dispatch workflows to satisfy "build the CI release" requests — build locally with `./gradlew assembleCi` instead; see the "CI" note in [`AGENTS.md`](../../AGENTS.md#build--test).
