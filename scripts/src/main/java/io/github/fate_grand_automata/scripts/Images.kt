@@ -79,6 +79,7 @@ enum class Images(val path: String) {
     SkillInsufficientMaterials("skill_insufficient_mats.png"),
     SkillInsufficientQP("skill_insufficient_qp.png"),
     SkillSelected("skill_selected.png"),
+    SkillFormChange("skill_form_change.png"),
     ServantAutoSelect("servant_auto_select.png"),
     ServantAutoSelectOff("servant_auto_select_off.png"),
     ServantMaxLevel("servant_max_level.png"),

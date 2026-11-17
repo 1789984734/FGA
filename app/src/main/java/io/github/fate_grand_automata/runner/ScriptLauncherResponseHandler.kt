@@ -51,19 +51,12 @@ class ScriptLauncherResponseHandler @Inject constructor(
                 ScriptModeEnum.Battle
             }
 
-            is ScriptLauncherResponse.SkillEnhancement -> {
-                prefs.skill.upgradeToLevel10 = resp.upgradeToLevel10
-
-                ScriptModeEnum.Skill
-            }
-
             is ScriptLauncherResponse.ServantEnhancement -> {
                 ScriptModeEnum.ServantLevel
             }
 
-            ScriptLauncherResponse.SoundPlayer -> {
-                ScriptModeEnum.SoundPlayer
-            }
+            ScriptLauncherResponse.SoundPlayer -> ScriptModeEnum.SoundPlayer
+            is ScriptLauncherResponse.Skill -> ScriptModeEnum.Skill
         }
     }
 }

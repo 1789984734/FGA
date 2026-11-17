@@ -16,12 +16,15 @@ sealed class ScriptLauncherResponse {
     data object SupportImageMaker : ScriptLauncherResponse()
     data object Battle : ScriptLauncherResponse()
 
-    data class SkillEnhancement(
-        val upgradeToLevel10: Boolean
-    ) : ScriptLauncherResponse()
-
     data object ServantEnhancement : ScriptLauncherResponse()
     data object SoundPlayer : ScriptLauncherResponse()
+
+    /**
+     * Starts the skill upgrade with the levels chosen in the launcher.
+     *
+     * @param targetLevels one per skill, in skill order
+     */
+    data class Skill(val targetLevels: List<Int>) : ScriptLauncherResponse()
 }
 
 class ScriptLauncherResponseBuilder(

@@ -1,38 +1,63 @@
 package io.github.fate_grand_automata.scripts.locations
 
+import io.github.fate_grand_automata.scripts.enums.GameServer
 import io.github.lib_automata.Location
 import io.github.lib_automata.Region
 import javax.inject.Inject
 
+/**
+ * Locations on the Skill Enhancement screen, where the three normal skills sit side by side.
+ */
 class SkillLocations @Inject constructor(
-    transforms: IScriptAreaTransforms
-) : IScriptAreaTransforms by transforms {
+    scriptAreaTransforms: IScriptAreaTransforms
+) : IScriptAreaTransforms by scriptAreaTransforms {
 
-    fun skillLocation(skillNumber: Int) =
-        Location(-339 + SKILL_SPACING * (skillNumber - 1), 519).xFromCenter()
+    /**
+     * The skill icon to select a skill for enhancement.
+     * @param skillNumber 1, 2 or 3
+     */
+    fun skillLocation(skillNumber: Int) = Location(-339, 519).xFromCenter() +
+            Location(576 * (skillNumber - 1), 0)
 
-    fun skillLevelRegion(skillNumber: Int) =
-        // Only the `current/10` digits. Including the `等级`/`Lv.` prefix makes ML Kit emit CJK
-        // garbage (e.g. '及1M0'), and the parser requires the `/10` suffix.
-        Region(-90 + SKILL_SPACING * (skillNumber - 1), if (isWide) 545 else 585, 130, 60)
-            .xFromCenter()
+    /**
+     * The button that switches between the forms of Servants like Aozaki Aoko. Those Servants
+     * have an extra bar with the form's name above their skills.
+     */
+    val formChangeButtonRegion = Region(1100, 260, 160, 200).xFromCenter()
 
-    /** A narrow slice of the cyan selection frame, excluding the skill icon itself. */
-    fun selectedIndicatorRegion(skillNumber: Int) =
-        Region(-470 + SKILL_SPACING * (skillNumber - 1), if (isWide) 356 else 396, 28, 96)
-            .xFromCenter()
+    /**
+     * Only the "N/10" digits next to a skill icon. Including the "等级"/"Lv." prefix makes ML Kit
+     * emit CJK garbage. It is empty when the skill is locked.
+     *
+     * @param skillNumber 1, 2 or 3
+     * @param hasFormBar whether the bar above the skills that comes with
+     * [formChangeButtonRegion] is shown, which moves the skills down
+     */
+    fun skillLevelRegion(skillNumber: Int, hasFormBar: Boolean) =
+        Region(-90, if (isWide) 545 else 585, 130, 60).xFromCenter() +
+                Location(575 * (skillNumber - 1), if (hasFormBar) 32 else 0)
 
-    val confirmationDialogRegion = when (isWide) {
-        true -> Region(280, 1035, 290, 165).xFromCenter()
-        false -> Region(280, 1075, 290, 165).xFromCenter()
+    val insufficientMaterialsRegion = when (gameServer) {
+        is GameServer.En -> when (isWide) {
+            true -> Region(-498, 197, 446, 43).xFromCenter()
+            false -> Region(-498, 225, 446, 43).xFromCenter()
+        }
+        else -> when (isWide) {
+            true -> Region(-499, 200, 597, 40).xFromCenter()
+            false -> Region(-501, 228, 597, 43).xFromCenter()
+        }
     }
 
-    val insufficientMaterialsRegion = when (isWide) {
-        true -> Region(-520, 188, 760, 65).xFromCenter()
-        false -> Region(-520, 218, 760, 65).xFromCenter()
+    val insufficientQPRegion = when (gameServer) {
+        is GameServer.En -> when (isWide) {
+            true -> Region(-500, 195, 405, 44).xFromCenter()
+            false -> Region(-499, 222, 405, 44).xFromCenter()
+        }
+        else -> when (isWide) {
+            true -> Region(-502, 195, 397, 47).xFromCenter()
+            false -> Region(-500, 222, 397, 47).xFromCenter()
+        }
     }
 
-    private companion object {
-        const val SKILL_SPACING = 576
-    }
+    val confirmationDialogRegion = Region(341, 1146, 121, 60).xFromCenter()
 }

@@ -3,20 +3,33 @@ package io.github.fate_grand_automata.scripts.entrypoints
 import io.github.fate_grand_automata.scripts.IFgoAutomataApi
 import io.github.fate_grand_automata.scripts.Images
 import io.github.fate_grand_automata.scripts.enums.ScriptModeEnum
+import io.github.fate_grand_automata.scripts.modules.AutoSkillSetup
+import io.github.fate_grand_automata.scripts.modules.EnhancementScreen
 import io.github.lib_automata.dagger.ScriptScope
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 
 @ScriptScope
 class AutoDetect @Inject constructor(
     api: IFgoAutomataApi,
+    private val autoSkillSetup: AutoSkillSetup,
+    private val enhancementScreen: EnhancementScreen,
 ) : IFgoAutomataApi by api {
-    fun get() = useSameSnapIn {
+    fun get(): ScriptModeEnum {
+        val mode = useSameSnapIn { detectMode() }
+
+        if (mode == ScriptModeEnum.Skill) {
+            autoSkillSetup.readSkillScreen()
+        }
+
+        return mode
+    }
+
+    private fun detectMode(): ScriptModeEnum {
         val emberSearchRegion = locations.scriptArea.let {
             it.copy(width = it.width / 3)
         }
 
-        when {
+        return when {
             images[Images.FriendSummon] in locations.fp.summonCheck ||
                     findImage(locations.fp.continueSummonRegion, Images.FPSummonContinue) ||
                     images[Images.FriendSummon] in locations.fp.initialSummonCheck ->
@@ -31,7 +44,7 @@ class AutoDetect @Inject constructor(
             locations.support.confirmSetupButtonRegion.exists(images[Images.SupportConfirmSetupButton], similarity = 0.75) ->
                 ScriptModeEnum.SupportImageMaker
 
-            isSkillEnhancementPage() ->
+            enhancementScreen.isSkillEnhancementMenu() ->
                 ScriptModeEnum.Skill
 
             mapOf(
@@ -41,7 +54,7 @@ class AutoDetect @Inject constructor(
             ).exists()->
                 ScriptModeEnum.ServantLevel
 
-            images[Images.EmptyEnhance] in locations.emptyEnhanceRegion ->
+            enhancementScreen.isNothingSelected() ->
                 ScriptModeEnum.CEBomb
 
             isSoundPlayerPage() ->
@@ -75,22 +88,6 @@ class AutoDetect @Inject constructor(
                     "プレイヤー" in text
         } catch (_: Throwable) {
             false
-        }
-    }
-
-    private fun isSkillEnhancementPage(): Boolean {
-        if (!locations.enhancementBannerRegion.exists(images[Images.SkillMenuBanner], similarity = 0.72)) {
-            return false
-        }
-
-        // The cyan selection frame pulses in the CN client, so a single frame can miss it.
-        return (1..3).any {
-            val selected = (1..3).any { skillNumber ->
-                locations.skill.selectedIndicatorRegion(skillNumber)
-                    .exists(images[Images.SkillSelected], similarity = 0.8)
-            }
-            if (!selected) 300.milliseconds.wait()
-            selected
         }
     }
 }

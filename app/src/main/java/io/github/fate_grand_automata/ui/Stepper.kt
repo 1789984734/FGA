@@ -1,8 +1,8 @@
 package io.github.fate_grand_automata.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
@@ -21,11 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,6 +72,19 @@ private fun DeltaButton(
     }
 }
 
+/**
+ * A value between a "-" and a "+" button. Holding a button keeps stepping.
+ *
+ * The value text is as wide as the wider of [valueRange]'s two ends, so the buttons don't move
+ * when the number of digits changes.
+ *
+ * @param value the value to show; the stepper keeps its own copy while a button is held
+ * @param onValueChange called once a button is released, not for every step while it is held
+ * @param valueRange the value never leaves this range
+ * @param enabled false disables both buttons and grays out the value
+ * @param delta the amount added or subtracted per step
+ * @param valueRepresentation the text shown for a value, e.g. with a unit
+ */
 @Composable
 fun Stepper(
     value: Int,
@@ -101,28 +116,44 @@ fun Stepper(
             enabled = enabled
         )
 
-        if (isEditing) {
-            StepperValueEditor(
-                initial = currentValue,
-                valueRange = valueRange,
-                onSubmit = { parsed ->
-                    currentValue = parsed
-                    onCommit()
-                    isEditing = false
-                },
-                onCancel = { isEditing = false }
-            )
-        } else {
-            StatusWrapper(enabled = enabled) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .widthIn(min = 36.dp)
+                .padding(horizontal = 5.dp)
+        ) {
+            // Invisible, only there to make the Box as wide as the widest value
+            for (end in listOf(valueRange.first, valueRange.last)) {
                 Text(
-                    valueRepresentation(currentValue),
-                    textAlign = TextAlign.Center,
-                    textDecoration = if (enabled) TextDecoration.Underline else null,
+                    valueRepresentation(end),
                     modifier = Modifier
-                        .widthIn(min = 36.dp)
-                        .clickable(enabled = enabled) { isEditing = true }
-                        .padding(horizontal = 5.dp)
+                        .alpha(0f)
+                        .clearAndSetSemantics { }
                 )
+            }
+
+            if (isEditing) {
+                StepperValueEditor(
+                    initial = currentValue,
+                    valueRange = valueRange,
+                    onSubmit = { parsed ->
+                        currentValue = parsed
+                        onCommit()
+                        isEditing = false
+                    },
+                    onCancel = { isEditing = false }
+                )
+            } else {
+                StatusWrapper(enabled = enabled) {
+                    Text(
+                        valueRepresentation(currentValue),
+                        textAlign = TextAlign.Center,
+                        textDecoration = if (enabled) TextDecoration.Underline else null,
+                        modifier = Modifier
+                            .widthIn(min = 36.dp)
+                            .clickable(enabled = enabled) { isEditing = true }
+                    )
+                }
             }
         }
 
@@ -193,8 +224,6 @@ private fun StepperValueEditor(
         keyboardActions = KeyboardActions(onDone = { submit() }),
         modifier = Modifier
             .widthIn(min = 36.dp)
-            .defaultMinSize(minWidth = 36.dp)
-            .padding(horizontal = 5.dp)
             .focusRequester(focusRequester)
             .onFocusChanged { state ->
                 if (state.isFocused) {

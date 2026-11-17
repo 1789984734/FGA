@@ -55,13 +55,18 @@ class StandardAutomataApi @Inject constructor(
 
     override fun Region.isBlack() = imageMatcher.isBlack(this)
 
-    override fun Region.detectText(outlinedText: Boolean): String {
+    override fun Region.detectText(outlinedText: Boolean, upscale: Boolean): String {
         screenshotManager.getScreenshot()
             .crop(transform.toImage(this))
             /*
-            threshold produces a new image, so the result of crop is no longer needed and can be
+            Each step produces a new image, so the previous one is no longer needed and can be
             released
              */
+            .let {
+                if (upscale) {
+                    it.use { cropped -> cropped.resize(cropped.size * 2.0) }
+                } else it
+            }
             .use { it.threshold(0.5) }
             .let {
                 if (outlinedText) {
@@ -76,9 +81,14 @@ class StandardAutomataApi @Inject constructor(
         }
     }
 
-    override fun Region.detectDigits(): String {
+    override fun Region.detectDigits(upscale: Boolean): String {
         screenshotManager.getScreenshot()
             .crop(transform.toImage(this))
+            .let {
+                if (upscale) {
+                    it.use { cropped -> cropped.resize(cropped.size * 2.0) }
+                } else it
+            }
             .also { highlight(this, HighlightColor.Info) }
             .use { raw ->
                 // ML Kit reads most grayscale crops well, but low-contrast digits on gradient
