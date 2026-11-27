@@ -20,20 +20,14 @@
   `build/intermediates/built_in_kotlinc/`, not `build/tmp/kotlin-classes/`, and `tasks.withType<KotlinCompile>`
   does not configure their built-in compiler: per-module compiler
   settings belong in that module's `android { kotlin { compilerOptions { } } }`.
-- `compileSdk` is **37** while `targetSdk` stays **36** — recent androidx libraries force
+- `compileSdk` is **37.1** while `targetSdk` stays **36** — recent androidx libraries force
   the compile level, but nothing opts into new runtime behavior. Keep the two decoupled;
-  bumping `targetSdk` is a separate, user-visible decision.
-- **OpenCV is at 5.0.0.1** (Maven Central `org.opencv:opencv`, June 2026). Its AAR ships
-  `libopencv_java5.so` (renamed from `libopencv_java4`) and a **16 KB aligned** `libc++_shared.so`,
-  so the old dual-AAR `alignedLibCxx` extraction is gone. Renovate still disables
-  `org.opencv:opencv` because OpenCV 4.12+/5.x KleidiCV can call SVE kernels: BlueStacks Air on
-  macOS advertises `HWCAP2_SVE2` without implementing SVE and dies with `SIGILL` (at first image
-  match on 4.12/4.13, and at `System.loadLibrary` on 4.14+, where a static constructor probes the
-  vector length with `rdvl`). Real Android devices, including Android 16, are fine. Vetting a bump
-  means checking whether an SVE instruction is *reachable*, not whether one is present.
-  `strings libopencv_java5.so | grep 'Custom HAL'` only reports the KleidiCV version — and stock
-  `objdump` cannot disassemble these files (`architecture UNKNOWN`), so a grep over its output
-  silently finds nothing for every version.
+  bumping `targetSdk` is a separate, user-visible decision. A minor API level needs the
+  `compileSdk { version = release(37) { minorApiLevel = 1 } }` block, not `compileSdk = 37`.
+- **OpenCV is at 5.1.0** (`org.opencv:opencv`, shipping `libopencv_java5.so`). Renovate
+  leaves upgrades manual. Earlier OpenCV releases could crash with `SIGILL` on BlueStacks
+  Air for macOS when KleidiCV used SVE instructions. Verify both native initialization and
+  template matching on BlueStacks Air when changing OpenCV.
 - Build types: `debug`, `release`, and `ci` (`initWith(release)`, debug-signed, ARM-only
   ABIs). The `ci` type must exist in every Android module (`app`, `prefs`).
 - CI's Gradle cache comes from `gradle/actions/setup-gradle`, not `setup-java`'s
