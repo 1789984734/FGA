@@ -36,9 +36,7 @@ fun IFgoAutomataApi.isInSupport(): Boolean {
 }
 
 fun IFgoAutomataApi.isInventoryFull() =
-    // We only have images for JP, NA and KR
-    (prefs.gameServer is GameServer.En || prefs.gameServer is GameServer.Jp || prefs.gameServer is GameServer.Kr)
-            && images[Images.InventoryFull] in locations.inventoryFullRegion
+    images[Images.InventoryFull] in locations.inventoryFullRegion
 
 /**
  * The level-up dialog shows the previous bond level on the left and the reached level on the right.
