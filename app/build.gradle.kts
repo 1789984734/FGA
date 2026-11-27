@@ -7,16 +7,12 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-/*
- * OpenCV 5.0.0.1 ships a 16 KB aligned libc++_shared.so, so the old "extract a newer
- * libc++ over 4.11.0's 4 KB copy" workaround is gone.
- *
- * BlueStacks Air on macOS advertises SVE2 in HWCAP2 without implementing SVE. OpenCV
- * 4.12+ / 5.x KleidiCV can SIGILL there; real Android devices (incl. Android 16) are fine.
- * Keep `opencv_version` and Renovate's pin in sync with that tradeoff.
- */
 android {
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
