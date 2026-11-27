@@ -59,5 +59,6 @@ class SkillLocations @Inject constructor(
         }
     }
 
-    val confirmationDialogRegion = Region(341, 1146, 121, 60).xFromCenter()
+    // Leave room around the button label for small layout shifts between servers.
+    val confirmationDialogRegion = Region(321, 1126, 161, 100).xFromCenter()
 }
