@@ -222,25 +222,7 @@ class AutoServantLevel @Inject constructor(
         }
         isInAscension = true
 
-        var confirmationVisible = false
-        val retry = 5
-
-        run ascension@{
-            repeat(retry) {
-                locations.enhancementClick.click()
-                confirmationVisible = waitForEnhancementConfirmation()
-
-                if (confirmationVisible) {
-                    return@ascension
-                }
-                if (connectionRetry.needsToRetry()) {
-                    connectionRetry.retry()
-                    0.5.seconds.wait()
-                }
-            }
-        }
-
-        if (!confirmationVisible) {
+        if (!clickEnhanceUntilConfirmed(attempts = 5)) {
             throw ServantUpgradeException(ExitReason.UnableToPerformAscension)
         }
     }
@@ -324,29 +306,19 @@ class AutoServantLevel @Inject constructor(
     }
 
     /**
-     * This function will perform the auto select.
-     * This will start the script to get the ember to enhance the servant.
+     * Opens the ember auto select dialog, or, when auto fill already selected the embers,
+     * taps the enhancement button and exits if no confirmation dialog shows up.
      *
      * @see isAutoSelectVisible
      */
     private fun performAutoSelect() {
-        if (stateAutoFill) {
-            repeat(3) { attempt ->
-                locations.enhancementClick.click()
-
-                if (waitForEnhancementConfirmation()) {
-                    return
-                }
-
-                if (attempt < 2) {
-                    0.5.seconds.wait()
-                }
-            }
-
-            throw ServantUpgradeException(ExitReason.NoEmbersOrQPLeft)
-        }
-        else {
+        if (!stateAutoFill) {
             locations.servant.servantAutoSelectRegion.click()
+            return
+        }
+
+        if (!clickEnhanceUntilConfirmed(attempts = 3, pauseBetweenAttempts = true)) {
+            throw ServantUpgradeException(ExitReason.NoEmbersOrQPLeft)
         }
     }
 
@@ -566,6 +538,29 @@ class AutoServantLevel @Inject constructor(
                 mapOf(images[Images.Execute] to locations.tempServantEnhancementRegion)
 
         return dialogs.exists(timeout = 3.seconds)
+    }
+
+    /**
+     * Clicks the enhancement button until one of its confirmation dialogs shows up. A single
+     * click isn't enough because the game ignores taps for a moment after screen transitions.
+     *
+     * @return false if no confirmation dialog appeared after [attempts] clicks
+     */
+    private fun clickEnhanceUntilConfirmed(attempts: Int, pauseBetweenAttempts: Boolean = false): Boolean {
+        repeat(attempts) { attempt ->
+            locations.enhancementClick.click()
+            if (waitForEnhancementConfirmation()) {
+                return true
+            }
+            val needsConnectionRetry = connectionRetry.needsToRetry()
+            if (needsConnectionRetry) {
+                connectionRetry.retry()
+            }
+            if (needsConnectionRetry || (pauseBetweenAttempts && attempt < attempts - 1)) {
+                0.5.seconds.wait()
+            }
+        }
+        return false
     }
 
     private companion object {
